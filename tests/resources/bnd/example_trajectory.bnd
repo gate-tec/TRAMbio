@@ -1,0 +1,7 @@
+node1	node2	type	type_set	key	extra	_merge	frame
+A0001-ASN:N	A0001-ASN:CA	covalent	['covalent']		[]	right_only	0
+A0001-ASN:CA	A0001-ASN:C	covalent	['covalent']		[]	right_only	0
+A0001-ASN:C	A0001-ASN:O	covalent	['covalent']		[]	right_only	0
+A0001-ASN:O	A0005-GLN:H	hbond	['hbond']	-5.422976273718599	[162.71446100180322, 161.711825854463, 126.56417794138552]	right_only	0
+A0001-ASN:O	A0005-GLN:H	hbond				left_only	10
+A0001-ASN:O	A0004-ILE:H	hbond	['hbond']	-1.2789529216118034	[128.98087871510896, 108.64187757137516, 148.00191571402547]	right_only	10

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graph xmlns="tram:components" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="tram:components https://raw.githubusercontent.com/gate-tec/TRAMbio/refs/heads/v0.0.0/resources/components.xsd">
+    <components size="1">
+        <component id="1" size="2">
+            <nodes>
+                <node>A0002-ASN:CG</node>
+                <node>A0002-ASN:OD1</node>
+            </nodes>
+            <halo/>
+        </component>
+    </components>
+    <states>
+        <state key="-INF">
+            <component>
+                <halo>
+                    <node>A0002-ASN:ND2</node>
+                </halo>
+                <components>
+                    <component id="1"/>
+                </components>
+            </component>
+        </state>
+    </states>
+</graph>

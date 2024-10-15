@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graph xmlns="tram:components">
+    <components size="3">
+        <component id="1" size="5">
+            <nodes>
+                <node>A0001-ARG:O</node>
+                <node>A0001-ARG:C</node>
+                <node>A0002-GLY:N</node>
+            </nodes>
+            <halo>
+                <node>A0002-GLY:CA</node>
+                <node>A0002-GLY:H</node>
+            </halo>
+        </component>
+        <component id="2" size="1">
+            <nodes>
+                <node>A0003-ARG:CA</node>
+            </nodes>
+            <halo/>
+        </component>
+        <component id="3" size="1">
+            <nodes>
+                <node>A0004-PHE:CA</node>
+            </nodes>
+            <halo/>
+        </component>
+    </components>
+    <states key="50">
+        <state key="1">
+            <component>
+                <halo/>
+                <components>
+                    <component id="1"/>
+                    <component id="2"/>
+                    <component id="3"/>
+                </components>
+            </component>
+        </state>
+        <state key="2">
+            <component>
+                <halo/>
+                <components>
+                    <component id="1"/>
+                </components>
+            </component>
+            <component>
+                <halo/>
+                <components>
+                    <component id="2"/>
+                    <component id="3"/>
+                </components>
+            </component>
+        </state>
+    </states>
+</graph>

@@ -1,0 +1,67 @@
+name: Create Release Branch
+run-name: Create Release Branch v${{ inputs.version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (ie 5.5.0)'
+        required: true
+
+jobs:
+  release:
+    name: Create branch
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      with:
+        ref: ${{ github.ref_name }}
+        token: ${{ secrets.API_TOKEN }}
+    - name: Initialize mandatory git config
+      run: |
+       git config user.name "GitHub Actions"
+       git config user.email noreply@github.com
+    - name: Change version number and name
+      run: sed -i 's|__version__ = ".*"|__version__ = "${{ github.event.inputs.version }}"|g' src/TRAMbio/__init__.py
+    - name: Update Changelog
+      uses: thomaseizinger/keep-a-changelog-new-release@f62c3c390716df5af712ba5d94f4f4a8efc1306d  # v.3.1.0
+      with:
+        tag: "v${{ github.event.inputs.version }}"
+    - name: Commit changelog and init files
+      id: make-commit
+      run: |
+        git add src/TRAMbio/__init__.py
+        git add CHANGELOG.md
+        git commit --message "Prepare release ${{ github.event.inputs.version }}"
+        git tag -a "v${{ github.event.inputs.version }}" -m "Release version ${{ github.event.inputs.version }}"
+        echo "::set-output name=commit::$(git rev-parse HEAD)"
+    - name: Create release branch
+      run: git checkout -b release/v${{ github.event.inputs.version }}
+    - name: Push new branch
+      run: git push --atomic origin release/v${{ github.event.inputs.version }} "v${{ github.event.inputs.version }}"
+    - name: Create pull request into main
+      uses: thomaseizinger/create-pull-request@955adb4634198898bc24dca0468514c63a8fc98d  # v1.4.0
+      with:
+       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       head: release/v${{ github.event.inputs.version }}
+       base: main
+       title: v${{ github.event.inputs.version }} into main
+       reviewers: ${{ github.event.issue.user.login }}
+       body: |
+           Hi!
+           This PR was created in response workflow running.
+           I've updated the version name and code commit: ${{ steps.make-commit.outputs.commit }}.
+    - name: Create pull request into develop
+      uses: thomaseizinger/create-pull-request@955adb4634198898bc24dca0468514c63a8fc98d  # v1.4.0
+      with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          head: release/v${{ github.event.inputs.version }}
+          base: develop
+          title: v${{ github.event.inputs.version }} into develop
+          reviewers: ${{ github.event.issue.user.login }}
+          body: |
+              Hi!
+              This PR was created in response workflow running.
+              I've updated the version name and code commit: ${{ steps.make-commit.outputs.commit }}.

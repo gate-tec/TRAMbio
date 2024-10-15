@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graph xmlns="tram:components">
+    <components size="1">
+        <component id="1" size="1">
+            <nodes>
+                <node>A0001-ARG:N</node>
+            </nodes>
+            <halo/>
+        </component>
+    </components>
+    <states key="50">
+        <state key="1">
+            <component>
+                <halo/>
+                <components>
+                    <component id="1"/>
+                </components>
+            </component>
+        </state>
+    </states>
+</graph>

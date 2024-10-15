@@ -1,0 +1,72 @@
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project]
+name = "TRAMbio"
+description = "Python package for Topological Rigidity Analysis in Molecular Biology (TRAMbio)."
+authors = [
+    { name = "Nicolas Handke", email = "nicolas@bioinf.uni-leipzig.de" }
+]
+dynamic = ["version"]
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering"
+]
+requires-python = ">=3.8"
+dependencies = [
+    "loguru",
+    "tqdm",
+    "pathvalidate",
+    "networkx",
+    "typing-extensions",
+    'numpy >= 1.16.2, < 1.25; python_version < "3.9"',
+    'numpy ; python_version >= "3.9"',
+]
+
+[project.optional-dependencies]
+molecule = [
+    "biopandas"
+]
+trajectory = [
+    "biopandas",
+    'gsd == 1.9.3 ; python_version < "3.9"',
+    "MDAnalysis",
+    "mdtraj"
+]
+xml = [
+    "lxml"
+]
+all = [
+    "biopandas",
+    'gsd == 1.9.3 ; python_version < "3.9"',
+    "MDAnalysis",
+    "mdtraj",
+    "lxml"
+]
+
+[project.urls]
+Homepage = "https://github.com/gate-tec/TRAMbio"
+"Bug Tracker" = "https://github.com/gate-tec/TRAMbio/issues"
+
+[project.scripts]
+tram-pebble = "TRAMbio.tram_pebble:main"
+tram-pdb = "TRAMbio.tram_pdb:main"
+tram-xtc = "TRAMbio.tram_xtc:main"
+tram-pymol = "TRAMbio.tram_pymol:main"
+tram-residue = "TRAMbio.tram_residue:main"
+
+[tool.pdm.version]
+source = "file"
+path = "src/TRAMbio/__init__.py"
+
+[tool.pdm.build]
+excludes = [ ".github/", "tests/", ".pytest_cache/", "resources/" ]

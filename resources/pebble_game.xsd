@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="tram:pebble"
+           xmlns="tram:pebble"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+  <!-- Type Definitions -->
+  <xs:simpleType name="paramType">
+    <xs:restriction base="xs:int">
+      <xs:minInclusive value="0" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="categoryType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="well-constrained|over-constrained|under-constrained|other" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="sizeType">
+    <xs:restriction base="xs:int">
+      <xs:minInclusive value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="nodeType">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+  <!-- Structure Definition -->
+  <xs:element name="graph">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="components">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="component" maxOccurs="unbounded" minOccurs="1">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="nodeType" name="node" maxOccurs="unbounded" minOccurs="1"/>
+                  </xs:sequence>
+                  <xs:attribute type="sizeType" name="size" use="required"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute type="sizeType" name="size" use="required"/>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute type="paramType" name="k" use="required"/>
+      <xs:attribute type="paramType" name="l" use="required"/>
+      <xs:attribute type="categoryType" name="category" use="required"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

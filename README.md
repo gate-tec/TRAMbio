@@ -1,5 +1,5 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/TRAMbio)
-![GitHub](https://img.shields.io/github/license/gate-tec/TRAMbio)
+![GitHub](https://img.shields.io/github/license/gate-tec/trambio)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](.github/CODE_OF_CONDUCT.md)
 
 # TRAMbio

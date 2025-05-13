@@ -23,7 +23,7 @@ rigid component changes in molecular dynamics (MD) trajectories.
 """
 
 __author__ = "Nicolas Handke <nicolas@bioinf.uni-leipzig.de>"
-__version__ = "0.0.7"
+__version__ = "0.1.0"
 __docformat__ = "numpy"
 
 import sys

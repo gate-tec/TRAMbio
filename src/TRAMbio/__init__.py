@@ -13,10 +13,10 @@ for $(k,l)$-sparsity as well as determining the $(k,l)$-spanning
 subgraphs, i.e., the $(k,l)$-rigid components. With regard to
 molecular data, in particular proteins, TRAMbio provides tools for the
 rigidity analysis on an atom or residue-level with further functionality
-towards specialized tasks like (a)~simulated protein unfolding
+towards specialized tasks like (a) simulated protein unfolding
 (`Rader et al. 2002`_)
-on single-state protein data and (b)~time-based tracking of
-rigid component changes in molecular dynamics~(MD) trajectories.
+on single-state protein data and (b) time-based tracking of
+rigid component changes in molecular dynamics (MD) trajectories.
 
  .. _Rader et al. 2002:
     https://doi.org/10.1073/pnas.062492699

@@ -11,9 +11,9 @@ for $(k,l)$-sparsity as well as determining the $(k,l)$-spanning
 subgraphs, i.e., the $(k,l)$-rigid components. With regard to
 molecular data, in particular proteins, TRAMbio provides tools for the
 rigidity analysis on an atom or residue-level with further functionality
-towards specialized tasks like (a)~simulated protein unfolding ([Rader et al. 2002])
-on single-state protein data and (b)~time-based tracking of
-rigid component changes in molecular dynamics~(MD) trajectories.
+towards specialized tasks like (a) simulated protein unfolding ([Rader et al. 2002])
+on single-state protein data and (b) time-based tracking of
+rigid component changes in molecular dynamics (MD) trajectories.
 
 [Rader et al. 2002]: https://doi.org/10.1073/pnas.062492699
 
@@ -148,14 +148,7 @@ Multiple features of the CLI commands can be customized via environment variable
 
 <details><summary>Environment variables for controlling atomic interactions:</summary>
 
-<table>
-<thead>
-<tr><th>Name</th><th>Description</th><th>Data Type</th><th>Default</th></tr>
-</thead>
-<tbody>
-<tr><td><code>TRAM_HYDROGEN_INCLUDE</code></td><td>Whether to add hydrogen bonds.</td><td><code>bool</code></td><td><code>true</code></td></tr>
-</tbody>
-</table>
+T.b.a
 </details>
 
 <details><summary>Environment variables for loading PDB data:</summary>
@@ -169,6 +162,11 @@ Multiple features of the CLI commands can be customized via environment variable
 <tr><td><code>TRAM_PDB_KEEP_HETS</code></td><td>Whether to include <code>HETATM</code> records from PDB data.</td><td><code>bool</code></td><td><code>true</code></td></tr>
 </tbody>
 </table>
+</details>
+
+<details><summary>Environment variables for controlling the workflows:</summary>
+
+T.b.a
 </details>
 
 ## Data Formats

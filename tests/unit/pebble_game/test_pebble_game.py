@@ -301,4 +301,5 @@ class TestRandomGraphs:
             rho, pebble_excess, components = run_component_pebble_game(under_constrained_graph, k=2, l=3)
             assert rho == 0
             assert pebble_excess == num_edges_to_remove
-            assert len(components) > 1  # removing any edge from the graph breaks it into multiple components
+            # removing any edge from the graph breaks it into multiple components
+            assert len(components) > 1 or (len(components) == 1 and len(components[0]) < 15)

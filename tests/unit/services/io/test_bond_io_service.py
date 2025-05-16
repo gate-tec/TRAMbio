@@ -102,7 +102,8 @@ class TestStoreBonds(TestMockPaths, TestMockData, TestParameters):
 
         assert os.path.exists(out_path_bonds)
         with open(out_path_bonds, "r") as file:
-            lines = file.readlines()
+            # Windows file format reads double line-breaks
+            lines = [x for x in file.readlines() if bool(x.strip())]
 
         assert len(lines) == len(mock_data_bond_frame) + 1
         assert lines[0].startswith("node1")  # header
@@ -115,12 +116,14 @@ class TestStoreBonds(TestMockPaths, TestMockData, TestParameters):
 
         assert os.path.exists(out_path_bonds)
         with open(out_path_bonds, "r") as file:
-            assert len(file.readlines()) == len(mock_data_bond_frame) + 1
+            # Windows file format reads double line-breaks
+            assert len([x for x in file.readlines() if bool(x.strip())]) == len(mock_data_bond_frame) + 1
 
         io_service.store_bonds(out_path_bonds, mock_data_bond_frame, mode='a')
 
         with open(out_path_bonds, "r") as file:
-            assert len(file.readlines()) == 2 * len(mock_data_bond_frame) + 1
+            # Windows file format reads double line-breaks
+            assert len([x for x in file.readlines() if bool(x.strip())]) == 2 * len(mock_data_bond_frame) + 1
 
 
 # test get_bonds_for_key

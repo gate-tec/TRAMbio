@@ -20,7 +20,7 @@ try:
     # sys.modules["mdtraj"].version.full_version
 except ModuleNotFoundError:
     exc = MissingDependencyError(
-        module="tram.services.io._xtc_mdtraj_io_service",
+        module="TRAMbio.services.io._xtc_mdtraj_io_service",
         dependency="mdtraj"
     )
     try:

@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import time
 from io import StringIO
 
@@ -336,7 +337,12 @@ class TestReadGraphml(TestParameters):
     def test_read_broken_graph(self, path_graphml_broken):
         xml_io_service = IOServiceRegistry.XML.query_service(self.TESTED_SERVICE)
 
-        with pytest.raises(ValueError, match=path_graphml_broken):
+        # simplify path check on Windows
+        target_output = (os.path.basename(path_graphml_broken) if
+                         sys.platform.startswith('win') else
+                         path_graphml_broken)
+
+        with pytest.raises(ValueError, match=target_output):
             xml_io_service.read_graphml(path_graphml_broken)
 
     # - test logging

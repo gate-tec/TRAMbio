@@ -11,6 +11,6 @@ class MissingDependencyError(Exception):
             dependency_string = ", ".join(dependency)
             if len(dependency) > 1:
                 ending = 'ies'
-        message = f"{sys.modules['tram'].__name__} submodule \"{module}\" requires missing dependenc{ending}: {dependency_string}"
+        message = f"{sys.modules['TRAMbio'].__name__} submodule \"{module}\" requires missing dependenc{ending}: {dependency_string}"
         super().__init__(message)
         self.message = message

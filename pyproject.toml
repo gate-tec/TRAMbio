@@ -38,8 +38,8 @@ molecule = [
 ]
 trajectory = [
     "biopandas",
-    'gsd == 1.9.3 ; python_version < "3.9"',
-    "MDAnalysis",
+    'gsd == 1.9.3; platform_system != "Darwin" and python_version < "3.9"',
+    'MDAnalysis; platform_system != "Darwin" or python_version >= "3.9"',
     "mdtraj"
 ]
 xml = [
@@ -47,8 +47,8 @@ xml = [
 ]
 all = [
     "biopandas",
-    'gsd == 1.9.3 ; python_version < "3.9"',
-    "MDAnalysis",
+    'gsd == 1.9.3; platform_system != "Darwin" and python_version < "3.9"',
+    'MDAnalysis; platform_system != "Darwin" or python_version >= "3.9"',
     "mdtraj",
     "lxml"
 ]

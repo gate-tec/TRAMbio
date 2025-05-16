@@ -1,5 +1,6 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/TRAMbio)
-![GitHub](https://img.shields.io/github/license/gate-tec/TRAMbio)
+![GitHub](https://img.shields.io/github/license/gate-tec/trambio)
+[![Build & PyTests](https://github.com/gate-tec/TRAMbio/actions/workflows/tests.yml/badge.svg?branch=develop)](https://github.com/gate-tec/TRAMbio/actions/workflows/tests.yml)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](.github/CODE_OF_CONDUCT.md)
 
 # TRAMbio
@@ -39,6 +40,11 @@ rigid component changes in molecular dynamics (MD) trajectories.
 
 ### System requirements
 - python (>=3.8)
+
+> [!NOTE]
+> If you intend to use TRAMbio for analysis of protein trajectories, please note that building Cython wheels for
+> [MDAnalysis](https://pypi.org/project/MDAnalysis/) for Python 3.8 on macOS may fail.
+> In that case, users are encouraged to use [mdtraj](https://pypi.org/project/mdtraj/) as an alternative.
 
 ### Install from PyPI
 The default installation only carries dependencies for the [`tram-pebble`](#cli) command as well as the API of the general (k,l)-Component Pebble Game:

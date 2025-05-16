@@ -149,15 +149,17 @@ def path_trajectory_sample(tmp_path):
 
     yield str(_get_path(tests.resources.xtc, pdb_name)), tmp_resource
 
-    os.remove(tmp_resource)
+    # skip clean-up on Windows due to locked process
+    if not sys.platform.startswith('win'):
+        os.remove(tmp_resource)
 
-    # currently requires teardown code for MDAnalysis
-    for file in [
-        str(tmp_path / f".{xtc_name}_offsets.npz"),
-        str(tmp_path / f".{xtc_name}_offsets.lock"),
-    ]:
-        if os.path.exists(file):
-            os.remove(file)
+        # currently requires teardown code for MDAnalysis
+        for file in [
+            str(tmp_path / f".{xtc_name}_offsets.npz"),
+            str(tmp_path / f".{xtc_name}_offsets.lock"),
+        ]:
+            if os.path.exists(file):
+                os.remove(file)
 
 @pytest.fixture
 def path_trajectory_sample_spliced(tmp_path):
@@ -170,15 +172,17 @@ def path_trajectory_sample_spliced(tmp_path):
 
     yield str(_get_path(tests.resources.xtc, pdb_name)), tmp_resource
 
-    os.remove(tmp_resource)
+    # skip clean-up on Windows due to locked process
+    if not sys.platform.startswith('win'):
+        os.remove(tmp_resource)
 
-    # currently requires teardown code for MDAnalysis
-    for file in [
-        str(tmp_path / f".{xtc_name}_offsets.npz"),
-        str(tmp_path / f".{xtc_name}_offsets.lock"),
-    ]:
-        if os.path.exists(file):
-            os.remove(file)
+        # currently requires teardown code for MDAnalysis
+        for file in [
+            str(tmp_path / f".{xtc_name}_offsets.npz"),
+            str(tmp_path / f".{xtc_name}_offsets.lock"),
+        ]:
+            if os.path.exists(file):
+                os.remove(file)
 
 
 # XML paths

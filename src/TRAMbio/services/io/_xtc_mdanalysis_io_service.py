@@ -15,7 +15,7 @@ try:
     from MDAnalysis.coordinates.PDB import PDBWriter
 except ModuleNotFoundError:
     exc = MissingDependencyError(
-        module="tram.services.io._xtc_mdanalysis_io_service",
+        module="TRAMbio.services.io._xtc_mdanalysis_io_service",
         dependency="MDAnalysis"
     )
     try:

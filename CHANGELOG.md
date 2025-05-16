@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- Resolved error on missing dependencies
+
+### Changed
+
+- Removed MDAnalysis from optional build dependencies on macOS with Python 3.8 to prevent [#4586](https://github.com/MDAnalysis/mdanalysis/issues/4586)
+
 ## [0.1.0] - 2025-05-13
 
 ### Added

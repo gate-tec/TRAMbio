@@ -178,7 +178,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
 
 
     # evaluate correct logging of (1) no bonds (2) inserted bonds
-    def test_logging_no_link(self, 
+    def test_logging_no_link(self,
             mock_protein_graph_gly_na_no_record,
             parameters_link_default,
             capsys
@@ -198,7 +198,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
         assert info_line is None
 
 
-    def test_logging_single_link(self, 
+    def test_logging_single_link(self,
             mock_protein_graph_gly_na,
             parameters_link_default,
             capsys
@@ -219,7 +219,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
         assert re.search(r"Added 1 .* LINK", info_line)
 
 
-    def test_logging_warning_missing_atom_for_record(self, 
+    def test_logging_warning_missing_atom_for_record(self,
             mock_protein_graph_gly_na_wrong_chain,
             parameters_link_default,
             capsys

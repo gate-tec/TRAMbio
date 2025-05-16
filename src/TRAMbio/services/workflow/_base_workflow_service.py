@@ -210,7 +210,7 @@ class BaseWorkflowService(IBaseWorkflowService, metaclass=abc.ABCMeta):
                 return f' {XMLConstants.STRUCTURE_ATTRIBUTE_NAME.value}="peptide unit"'
         elif component_length in [5, 6, 7, 9]:
             # potential amino acid ring
-            present_aas = list(set(str(node)[6:9] for node in node_list))
+            present_aas = list({str(node)[6:9] for node in node_list})
             if len(present_aas) == 1 and \
                     present_aas[0] in RIGID_RING_ATOMS.keys() and \
                     self._check_structure(node_list, RIGID_RING_ATOMS[present_aas[0]]):

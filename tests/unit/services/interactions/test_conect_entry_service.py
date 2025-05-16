@@ -282,7 +282,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
 
 
     # evaluate correct logging of (1) no bonds (2) inserted bonds
-    def test_logging_no_conect(self, 
+    def test_logging_no_conect(self,
             mock_protein_graph_methane_no_record,
             parameters_conect_default,
             capsys
@@ -302,7 +302,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
         assert info_line is None
 
 
-    def test_logging_single_conect(self, 
+    def test_logging_single_conect(self,
             mock_protein_graph_water_single_bond,
             parameters_conect_default,
             capsys
@@ -323,7 +323,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
         assert re.search(r"Added 1 .* CONECT", info_line)
 
 
-    def test_logging_multiple_conects_in_record(self, 
+    def test_logging_multiple_conects_in_record(self,
             mock_protein_graph_methane,
             parameters_conect_default,
             capsys
@@ -344,7 +344,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
         assert re.search(r"Added 4 .* CONECT", info_line)
 
 
-    def test_logging_warning_missing_atom_for_record(self, 
+    def test_logging_warning_missing_atom_for_record(self,
             mock_protein_graph_methane_wrong_atom_numbers,
             parameters_conect_default,
             capsys

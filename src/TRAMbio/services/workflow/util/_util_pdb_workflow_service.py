@@ -35,8 +35,8 @@ def apply_pebble_game(
             try:
                 key = str(round(edge[3], 3))
             except TypeError:
-                key = "(%s,%s)" % (edge[0], edge[1])
+                key = "({},{})".format(edge[0], edge[1])
         else:
-            key = "(%s,%s)" % (edge[0], edge[1])
+            key = "({},{})".format(edge[0], edge[1])
 
         yield key, components

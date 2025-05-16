@@ -118,7 +118,7 @@ class TestTramResidue(TestArguments):
 
         assert len(list(args_test_components_1.iterdir())) == 1  # JSON file
 
-        with open(str(args_test_components_1 / "sample_residue_components.json"), "r") as file:
+        with open(str(args_test_components_1 / "sample_residue_components.json")) as file:
             data = json.load(file)
 
         assert len(data) == 1  # reduced to a single state
@@ -130,7 +130,7 @@ class TestTramResidue(TestArguments):
 
         assert len(list(args_test_model_1.iterdir())) == 1  # JSON file
 
-        with open(str(args_test_model_1 / "sample_residue_components.json"), "r") as file:
+        with open(str(args_test_model_1 / "sample_residue_components.json")) as file:
             data = json.load(file)
 
         assert len(data) == 1  # reduced to a single state
@@ -142,7 +142,7 @@ class TestTramResidue(TestArguments):
 
         assert len(list(args_sample_sliced.iterdir())) == 1  # JSON file
 
-        with open(str(args_sample_sliced / "sample_residue_components.json"), "r") as file:
+        with open(str(args_sample_sliced / "sample_residue_components.json")) as file:
             data = json.load(file)
 
         assert len(data) == 3  # all three states present
@@ -154,7 +154,7 @@ class TestTramResidue(TestArguments):
 
         assert len(list(args_sample_sliced_with_pdb.iterdir())) == 1  # JSON file
 
-        with open(str(args_sample_sliced_with_pdb / "sample_residue_components.json"), "r") as file:
+        with open(str(args_sample_sliced_with_pdb / "sample_residue_components.json")) as file:
             data = json.load(file)
 
         assert len(data) == 3  # all three states present

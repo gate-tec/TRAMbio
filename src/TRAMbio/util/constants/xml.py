@@ -46,7 +46,7 @@ def components_namespace(const: XMLConstants) -> Tuple[str, Dict[str, str]]:
     return 'tram:' + const.value, XML_NAMESPACE
 
 
-XML_SCHEME_COMPONENTS = """<?xml version="1.0" encoding="UTF-8"?>
+XML_SCHEME_COMPONENTS = r"""<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            targetNamespace="tram:components"
            xmlns="tram:components"

@@ -51,7 +51,7 @@ def _format(
         pebble_bars = [entry for entry in pebble_bars if entry[0][10:] not in exclude and entry[1][10:] not in exclude]
 
     coords = [
-        entry[:10] + [float("{:8.3f}".format(entry[10])), float("{:8.3f}".format(entry[11])), float("{:8.3f}".format(entry[12]))] + entry[13:]
+        entry[:10] + [float(f"{entry[10]:8.3f}"), float(f"{entry[11]:8.3f}"), float(f"{entry[12]:8.3f}")] + entry[13:]
         for entry in coords
     ]
 
@@ -61,7 +61,7 @@ def _format(
 def _modify_coords(coords, x_offset, y_offset, z_offset):
     if x_offset == y_offset == z_offset == 0.0:
         return coords
-    
+
     return [
         entry[:10] +
         [

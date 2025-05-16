@@ -22,7 +22,7 @@ from tests.mock.services.interactions import *
 # The only relevant parameters are UNIQUE_BONDS and KEEP_HETS
 
 class TestParameters:
-    
+
     TESTED_SERVICE = "PdbStructureService"
     LENGTH_EPSILON = 0.05
 

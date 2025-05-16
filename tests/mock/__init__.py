@@ -1,3 +1,2 @@
-
 class MockServiceEvalException(Exception):
     pass

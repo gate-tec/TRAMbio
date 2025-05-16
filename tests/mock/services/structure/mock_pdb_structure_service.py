@@ -41,4 +41,3 @@ class MockHydrogenTestPdbStructureService(IPdbStructureService):
 
     def apply_non_covalent_interactions(self, protein_graph: ProteinGraph, parameter_id: str = '') -> None:
         raise NotImplementedError
-

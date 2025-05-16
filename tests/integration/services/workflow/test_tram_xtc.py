@@ -193,7 +193,7 @@ class TestTramXtc(TestArguments, TestEnvironmentVariables):
         assert os.path.exists(xml_f)
         assert IOServiceRegistry.XML.single_service().validate_xml(xml_f)
 
-        with open(xml_f, "r") as file:
+        with open(xml_f) as file:
             xml_lines = file.readlines()
 
         # verify XML structure
@@ -215,7 +215,7 @@ class TestTramXtc(TestArguments, TestEnvironmentVariables):
         assert os.path.exists(xml_f)
         assert IOServiceRegistry.XML.single_service().validate_xml(xml_f)
 
-        with open(xml_f, "r") as file:
+        with open(xml_f) as file:
             xml_lines = file.readlines()
 
         # verify XML structure
@@ -237,7 +237,7 @@ class TestTramXtc(TestArguments, TestEnvironmentVariables):
         assert os.path.exists(xml_f)
         assert IOServiceRegistry.XML.single_service().validate_xml(xml_f)
 
-        with open(xml_f, "r") as file:
+        with open(xml_f) as file:
             xml_lines = file.readlines()
 
         # verify XML structure
@@ -259,7 +259,7 @@ class TestTramXtc(TestArguments, TestEnvironmentVariables):
         assert os.path.exists(xml_f)
         assert IOServiceRegistry.XML.single_service().validate_xml(xml_f)
 
-        with open(xml_f, "r") as file:
+        with open(xml_f) as file:
             xml_lines = file.readlines()
 
         # verify XML structure
@@ -281,7 +281,7 @@ class TestTramXtc(TestArguments, TestEnvironmentVariables):
         assert os.path.exists(xml_f)
         assert IOServiceRegistry.XML.single_service().validate_xml(xml_f)
 
-        with open(xml_f, "r") as file:
+        with open(xml_f) as file:
             xml_lines = file.readlines()
 
         # verify XML structure
@@ -303,7 +303,7 @@ class TestTramXtc(TestArguments, TestEnvironmentVariables):
         assert os.path.exists(xml_f)
         assert IOServiceRegistry.XML.single_service().validate_xml(xml_f)
 
-        with open(xml_f, "r") as file:
+        with open(xml_f) as file:
             xml_lines = file.readlines()
 
         # verify XML structure

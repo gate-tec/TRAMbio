@@ -10,7 +10,7 @@ except ImportError:
     HAS_SETTING_WITH_COPY_WARNING = False
 
 
-class WarningWrapper(object):
+class WarningWrapper:
 
     def __init__(self, warning_type: Union[List[Type[Warning]], Type[Warning]] = None):
         self._warning_list = [Warning] if warning_type is None else (

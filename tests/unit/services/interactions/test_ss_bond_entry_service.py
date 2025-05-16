@@ -170,7 +170,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
 
 
     # evaluate correct logging of (1) no bonds (2) inserted bonds
-    def test_logging_no_ss_bonds(self, 
+    def test_logging_no_ss_bonds(self,
             mock_protein_graph_css_css_no_record,
             parameters_ss_bond_default,
             capsys
@@ -190,7 +190,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
         assert info_line is None
 
 
-    def test_logging_single_ss_bond(self, 
+    def test_logging_single_ss_bond(self,
             mock_protein_graph_css_css,
             parameters_ss_bond_default,
             capsys
@@ -210,8 +210,8 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
         assert info_line is not None
         assert re.search(r"Added .* SSBOND", info_line)
 
-    
-    def test_logging_warning_missing_atom_for_record(self, 
+
+    def test_logging_warning_missing_atom_for_record(self,
             mock_protein_graph_css_css_wrong_chain,
             parameters_ss_bond_default,
             capsys

@@ -237,7 +237,7 @@ class TestCalculateComponentsFromGenerator(TestParameters, TestMockGenerator, Te
         assert "C-0" in comp_dict.keys()
         assert comp_dict["C-0"]["size"] == 3
 
-        with open(temp_out_path, "r") as file:
+        with open(temp_out_path) as file:
             self.assert_content_order(file.readlines(), [
                 "key=\"0\"", "C-0", "key=\"1\"", "C-0"
             ])
@@ -255,7 +255,7 @@ class TestCalculateComponentsFromGenerator(TestParameters, TestMockGenerator, Te
         assert "C-0" in comp_dict.keys()
         assert comp_dict["C-0"]["size"] == 3
 
-        with open(temp_out_path, "r") as file:
+        with open(temp_out_path) as file:
             self.assert_content_order(file.readlines(), [
                 "key=\"0\"", "A0002-GLY:H", "C-0", "key=\"1\"", "A0001-GLY:CA", "C-0"
             ])
@@ -276,7 +276,7 @@ class TestCalculateComponentsFromGenerator(TestParameters, TestMockGenerator, Te
         assert "C-1" in comp_dict.keys()
         assert comp_dict["C-1"]["size"] == 4
 
-        with open(temp_out_path, "r") as file:
+        with open(temp_out_path) as file:
             self.assert_content_order(file.readlines(), [
                 "key=\"0\"", "C-0", "key=\"1\"", "C-1"
             ])
@@ -297,7 +297,7 @@ class TestCalculateComponentsFromGenerator(TestParameters, TestMockGenerator, Te
         assert "C-1" in comp_dict.keys()
         assert comp_dict["C-1"]["size"] == 1
 
-        with open(temp_out_path, "r") as file:
+        with open(temp_out_path) as file:
             self.assert_content_order(file.readlines(), [
                 "key=\"0\"", "C-0", "key=\"1\"", "C-1", "C-0"
             ])
@@ -323,7 +323,7 @@ class TestCalculateComponentsFromGenerator(TestParameters, TestMockGenerator, Te
         assert "C-2" in comp_dict.keys()
         assert comp_dict["C-2"]["size"] == 1
 
-        with open(temp_out_path, "r") as file:
+        with open(temp_out_path) as file:
             self.assert_content_order(file.readlines(), [
                 "key=\"0\"", "C-0", "key=\"1\"", "C-1"
             ])
@@ -352,7 +352,7 @@ class TestCalculateComponentsFromGenerator(TestParameters, TestMockGenerator, Te
         assert "C-3" in comp_dict.keys()
         assert comp_dict["C-3"]["size"] == 1
 
-        with open(temp_out_path, "r") as file:
+        with open(temp_out_path) as file:
             self.assert_content_order(file.readlines(), [
                 "key=\"0\"", "C-0", "key=\"1\"", "C-1", "C-2"
             ])

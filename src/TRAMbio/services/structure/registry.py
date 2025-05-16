@@ -176,4 +176,3 @@ class _StructureServiceRegistry:
 
 
 StructureServiceRegistry = _StructureServiceRegistry()
-

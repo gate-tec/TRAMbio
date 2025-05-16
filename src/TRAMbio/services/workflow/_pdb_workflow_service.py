@@ -63,8 +63,7 @@ class PdbWorkflowService(BaseWorkflowService, IPdbWorkflowService):
 
         @as_custom_generator(Tuple[str, List[PebbleGameResult]], pd.DataFrame)
         def generator():
-            for val in apply_pebble_game(protein_graph, verbose=verbose):
-                yield val
+            yield from apply_pebble_game(protein_graph, verbose=verbose)
 
             return protein_graph.hydrogen_mapping
 

@@ -57,4 +57,3 @@ def set_log_level(log_level: Optional[str]):
                    enqueue=True,
                    level=log_level)
         logger.enable('TRAMbio')
-

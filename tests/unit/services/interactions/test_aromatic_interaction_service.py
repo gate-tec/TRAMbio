@@ -241,7 +241,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
 
 
     # evaluate correct logging of (1) no bonds (2) detected bonds
-    def test_logging_debug_no_aromatic_interactions(self, 
+    def test_logging_debug_no_aromatic_interactions(self,
             mock_protein_graph_yz_plane_pi_large_distance,
             parameters_aromatic_interactions_default,
             capsys
@@ -260,7 +260,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
         assert re.search(r"0 aromatic", info_line)
 
 
-    def test_logging_single_aromatic_interaction(self, 
+    def test_logging_single_aromatic_interaction(self,
             mock_protein_graph_yz_plane_pi,
             parameters_aromatic_interactions_default,
             capsys

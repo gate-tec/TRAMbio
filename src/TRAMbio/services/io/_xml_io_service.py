@@ -51,7 +51,7 @@ class XmlIOService(IXmlIOService):
 
     def read(self, xml_path: str) -> Tuple[ET.Element, ET.Element]:
         # TODO: Check file
-        with open(xml_path, 'r') as xml_f:
+        with open(xml_path) as xml_f:
             xml_lines = xml_f.readlines()
 
         try:
@@ -109,7 +109,7 @@ class XmlIOService(IXmlIOService):
             logger.warning(f"Module lxml not found. Unable to validate {xml_path}.")
             return True
 
-        with open(xml_path, 'r') as xml_f:
+        with open(xml_path) as xml_f:
             xml_string = '\n'.join(xml_f.readlines())
         self.__xml_schema_components_validator(xml_string)
         return True
@@ -195,7 +195,7 @@ class XmlIOService(IXmlIOService):
             skip_state = False
             key_string = XMLConstants.KEY_ATTRIBUTE_NAME.value + "=\""
 
-            with open(temp_path, 'r') as temp_xml_f:
+            with open(temp_path) as temp_xml_f:
                 prefix_len = len(XMLConstants.SPECIAL_CHARACTER.value)
                 for line in temp_xml_f:
                     if XMLConstants.STATE_TAG.value in line:

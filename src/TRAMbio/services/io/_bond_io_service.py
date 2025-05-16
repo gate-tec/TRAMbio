@@ -20,7 +20,7 @@ class BondIOService(IBondIOService):
         return "BondIOService"
 
     def read(self, bond_path: str) -> pd.DataFrame:
-        with open(bond_path, 'r') as bond_file:
+        with open(bond_path) as bond_file:
             bond_frame = pd.read_csv(bond_file, sep='\t', header=0, index_col=None)
         return bond_frame
 

@@ -14,7 +14,7 @@ _R = TypeVar('_R')
 
 class CustomGenerator(Iterable, Generic[_I, _R]):
     """Generator wrapper with access to return value"""
-    def __init__(self, gen: Union[CustomGenerator[_I, _R], Generator[_I, None, _R]]):
+    def __init__(self, gen: CustomGenerator[_I, _R] | Generator[_I, None, _R]):
         self._gen = gen
         self._value = None
 
@@ -22,11 +22,11 @@ class CustomGenerator(Iterable, Generic[_I, _R]):
         self._value = yield from self._gen
         return self._value
 
-    def stop(self) -> Union[_I, _R, None]:
+    def stop(self) -> _I | _R | None:
         return self._value
 
 
-def as_custom_generator(iter_type: Type, return_type: Type):
+def as_custom_generator(iter_type: type, return_type: type):
 
     def as_custom_generator_decorator(f):
         @functools.wraps(f)

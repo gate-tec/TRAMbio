@@ -189,7 +189,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
 
 
     # evaluate correct logging of (1) no bonds (2) detected bonds
-    def test_logging_no_disulphide_bridges(self, 
+    def test_logging_no_disulphide_bridges(self,
             mock_protein_graph_cyh_css,
             parameters_disulphide_bridge_default,
             capsys
@@ -209,7 +209,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
         assert info_line is None
 
 
-    def test_logging_single_disulphide_bridge(self, 
+    def test_logging_single_disulphide_bridge(self,
             mock_protein_graph_css_css,
             parameters_disulphide_bridge_default,
             capsys
@@ -231,7 +231,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
 
 
     # evaluate correct debug logging
-    def test_logging_debug_unusual_distance(self, 
+    def test_logging_debug_unusual_distance(self,
             mock_protein_graph_css_css_non_standard_distance,
             parameters_disulphide_bridge_default,
             capsys
@@ -253,7 +253,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
         assert re.search(r"doesn't match .* instead of 2.04", debug_line)
 
 
-    def test_logging_debug_not_enough_suitable_cysteine_residues(self, 
+    def test_logging_debug_not_enough_suitable_cysteine_residues(self,
             mock_protein_graph_cyh_css,
             parameters_disulphide_bridge_default,
             capsys
@@ -274,7 +274,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
         assert re.search(r"Cannot add disulphide", debug_line)
 
 
-    def test_logging_debug_no_valid_interaction(self, 
+    def test_logging_debug_no_valid_interaction(self,
             mock_protein_graph_css_css_large_distance,
             parameters_disulphide_bridge_default,
             capsys

@@ -291,7 +291,7 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
         assert InteractionType.HYDROPHOBIC.value in protein_graph.graphs['full'].edges["A0001-PHE:CG", "A0002-CYH:SG"]["kind"]
 
 
-    def test_detect_single_hydrophobic_sulphur_carbon_minimal_length(self, 
+    def test_detect_single_hydrophobic_sulphur_carbon_minimal_length(self,
             mock_protein_graph_phe_cyh_multiplex,
             parameters_hydrophobics_default
     ):

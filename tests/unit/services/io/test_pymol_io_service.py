@@ -46,7 +46,7 @@ class TestMockData:
     def mock_data_pymol_bonds(self):
         bonds_string = textwrap.dedent("""
         bond state 2 & /DUMMY/*/A/GLY`3/O, state 2 & /DUMMY/*/A/ARG`1/H
-        
+
         set_bond stick_color, yellow, /DUMMY/*/A/GLY`3/O, /DUMMY/*/A/ARG`1/H
         set_bond stick_radius, 0.1, /DUMMY/*/A/GLY`3/O, /DUMMY/*/A/ARG`1/H
         """)
@@ -77,7 +77,7 @@ class TestWritePyMolTemplate(TestMockPaths, TestMockData, TestParameters):
 
         # Validate output file
         assert os.path.exists(out_pymol_path)
-        with open(out_pymol_path, "r") as file:
+        with open(out_pymol_path) as file:
             lines = file.readlines()
 
         for line in lines:
@@ -108,7 +108,7 @@ class TestWritePyMolTemplate(TestMockPaths, TestMockData, TestParameters):
 
         # Validate output file
         assert os.path.exists(out_pymol_path)
-        with open(out_pymol_path, "r") as file:
+        with open(out_pymol_path) as file:
             lines = file.readlines()
 
         first_load = True
@@ -143,7 +143,7 @@ class TestWritePyMolTemplate(TestMockPaths, TestMockData, TestParameters):
 
         # Validate output file
         assert os.path.exists(out_pymol_path)
-        with open(out_pymol_path, "r") as file:
+        with open(out_pymol_path) as file:
             lines = file.readlines()
 
         for line in lines:

@@ -305,14 +305,14 @@ class TestRead(TestParameters):
 
         # check components
         assert len(base_components) == 3
-        assert len(set(base_components[i].get("id", None) for i in range(3))) == 3  # verify uniqueness of ids
+        assert len({base_components[i].get("id", None) for i in range(3)}) == 3  # verify uniqueness of ids
 
         # check states
         assert len(states) == 2
         first_comp_list = states[0][0].find("./tram:components", {"tram": "tram:components"})
         assert first_comp_list is not None
         assert len(first_comp_list) == 3
-        assert len(set(first_comp_list[i].get("id", None) for i in range(3))) == 3  # verify id reference
+        assert len({first_comp_list[i].get("id", None) for i in range(3)}) == 3  # verify id reference
 
     def test_read_broken_xml(self, path_xml_broken):
         xml_io_service = IOServiceRegistry.XML.query_service(self.TESTED_SERVICE)
@@ -514,7 +514,7 @@ class TestConvertTempToXml(TestMockPaths, TestMockData, TestParameters):
 
         # verify output file exists
         assert os.path.exists(out_path)
-        with open(out_path, "r") as file:
+        with open(out_path) as file:
             xml_lines = file.readlines()
 
         # verify XML structure
@@ -557,7 +557,7 @@ class TestConvertTempToXml(TestMockPaths, TestMockData, TestParameters):
 
         # verify output file exists
         assert os.path.exists(out_path)
-        with open(out_path, "r") as file:
+        with open(out_path) as file:
             xml_lines = file.readlines()
 
         # verify XML structure
@@ -620,7 +620,7 @@ class TestConvertTempToXml(TestMockPaths, TestMockData, TestParameters):
 
         # verify output file exists
         assert os.path.exists(out_path)
-        with open(out_path, "r") as file:
+        with open(out_path) as file:
             xml_lines = file.readlines()
 
         # verify XML structure
@@ -662,7 +662,7 @@ class TestWritePebbleGameResults(TestMockPaths, TestMockData, TestParameters):
 
         # verify output file exists
         assert os.path.exists(out_path_pebble_game)
-        with open(out_path_pebble_game, "r") as file:
+        with open(out_path_pebble_game) as file:
             lines = file.readlines()
 
         # verify XML structure

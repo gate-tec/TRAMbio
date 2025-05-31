@@ -45,6 +45,9 @@ trajectory = [
 xml = [
     "lxml"
 ]
+gui = [
+    "nicegui"
+]
 all = [
     "biopandas",
     'gsd == 1.9.3; platform_system != "Darwin" and python_version < "3.9"',
@@ -63,6 +66,9 @@ tram-pdb = "TRAMbio.tram_pdb:main"
 tram-xtc = "TRAMbio.tram_xtc:main"
 tram-pymol = "TRAMbio.tram_pymol:main"
 tram-residue = "TRAMbio.tram_residue:main"
+
+[project.gui-scripts]
+TRAMbio = "TRAMbio.gui.launcher:main"
 
 [tool.pdm.version]
 source = "file"

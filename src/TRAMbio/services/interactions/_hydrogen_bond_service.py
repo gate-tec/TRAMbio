@@ -31,7 +31,7 @@ class HydrogenBondService(IInteractionService):
             return
         parameter_registry = ParameterRegistry.get_parameter_set(parameter_id)
         energy_threshold = parameter_registry(HydrogenBondParameter.ENERGY_THRESHOLD.value)
-        minimal_length = parameter_registry(HydrogenBondParameter.MINIMAL_LENGTH.value)
+        minimum_distance = parameter_registry(HydrogenBondParameter.MINIMUM_LENGTH.value)
 
         strong_energy_threshold = parameter_registry(HydrogenBondParameter.STRONG_ENERGY_THRESHOLD.value)
         default_bar_count = parameter_registry(HydrogenBondParameter.BAR_COUNT.value)
@@ -39,7 +39,7 @@ class HydrogenBondService(IInteractionService):
         bond_frame, covalent_frame = calculate_hydrogen_and_salt_bridge_bonds(
             graphs=protein_graph.graphs, heavy_atom_df=protein_graph.heavy_atom_df,
             hydrogen_mapping=protein_graph.hydrogen_mapping, hydrogen_df=protein_graph.hydrogen_df,
-            minimum_distance=minimal_length, energy_threshold=energy_threshold,
+            minimum_distance=minimum_distance, energy_threshold=energy_threshold,
             verbose=verbose
         )
 

@@ -31,7 +31,6 @@ class TestEnvironmentVariables:
     def env_vars_tram_xtc_default(self, monkeypatch):
         monkeypatch.setenv(HydrogenBondParameter.INCLUDE.value, "true")
         monkeypatch.setenv(HydrogenBondParameter.ENERGY_THRESHOLD.value, "-0.1")
-        monkeypatch.setenv(HydrogenBondParameter.CUTOFF_DISTANCE.value, "3.0")
         monkeypatch.setenv(HydrogenBondParameter.STRONG_ENERGY_THRESHOLD.value, "0.0")
         monkeypatch.setenv(HydrogenBondParameter.BAR_COUNT.value, "5")
         monkeypatch.setenv(HydrophobicInteractionParameter.INCLUDE.value, "true")

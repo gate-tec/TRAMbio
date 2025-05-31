@@ -12,9 +12,8 @@ __all__ = ["InteractionServiceRegistry", "IInteractionService", "InteractionServ
 
 
 ParameterRegistry.register_parameter(HydrogenBondParameter.INCLUDE.value, True)
-ParameterRegistry.register_parameter(HydrogenBondParameter.MINIMAL_LENGTH.value, 2.6, lambda x: x >= 0.0)
+ParameterRegistry.register_parameter(HydrogenBondParameter.MINIMUM_LENGTH.value, 2.6, lambda x: x >= 0.0)
 ParameterRegistry.register_parameter(HydrogenBondParameter.ENERGY_THRESHOLD.value, -0.1)
-ParameterRegistry.register_parameter(HydrogenBondParameter.CUTOFF_DISTANCE.value, 3.0, lambda x: x > 0.0)
 ParameterRegistry.register_parameter(HydrogenBondParameter.STRONG_ENERGY_THRESHOLD.value, 0.0)
 ParameterRegistry.register_parameter(HydrogenBondParameter.BAR_COUNT.value, 5, lambda x: 1 <= x <= 6)
 

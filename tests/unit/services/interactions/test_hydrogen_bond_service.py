@@ -49,10 +49,9 @@ class TestParameters:
         registry = ParameterRegistry.get_parameter_set(param_id)
 
         registry.set_parameter(HydrogenBondParameter.INCLUDE.value, True)
-        registry.set_parameter(HydrogenBondParameter.MINIMAL_LENGTH.value, 2.0)
+        registry.set_parameter(HydrogenBondParameter.MINIMUM_LENGTH.value, 2.0)
         registry.set_parameter(HydrogenBondParameter.ENERGY_THRESHOLD.value, 5000.0)
         registry.set_parameter(HydrogenBondParameter.STRONG_ENERGY_THRESHOLD.value, 5000.0)
-        registry.set_parameter(HydrogenBondParameter.CUTOFF_DISTANCE.value, 5000.0)
         registry.set_parameter(GeneralWorkflowParameter.VERBOSE.value, True)
 
         yield param_id

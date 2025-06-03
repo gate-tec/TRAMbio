@@ -124,6 +124,34 @@ class TestArguments:
         os.rmdir(d)
 
     @pytest.fixture
+    def args_sample_mdanalysis_with_high_threshold(self, tmp_path, path_trajectory_sample):
+        pdb_path, xtc_path = path_trajectory_sample
+
+        orig_argv = list(sys.argv)
+        d = tmp_path / "xtc_sample"
+        sys.argv = [
+            "tram-xtc",
+            "--pdb", pdb_path,
+            "--xtc", xtc_path,
+            "--out-dir", str(d),
+            "--threshold", "-50.0",
+            "--stride", "1",
+            "--edges",
+            "--module", "MDAnalysis",
+            "--name", "sample",
+            "--log-level", "TRACE"
+        ]
+
+        yield d
+
+        sys.argv = orig_argv
+
+        # clean-up files
+        for file in os.listdir(d):
+            os.remove(d / file)
+        os.rmdir(d)
+
+    @pytest.fixture
     def args_sample_mdtraj(self, tmp_path, path_trajectory_sample):
         pdb_path, xtc_path = path_trajectory_sample
 
@@ -181,7 +209,7 @@ class TestArguments:
 # General Tests #####
 #####################
 
-@pytest.mark.slow
+# @pytest.mark.slow
 class TestTramXtc(TestArguments, TestEnvironmentVariables):
 
     @pytest.mark.requires_MDAnalysis
@@ -227,6 +255,28 @@ class TestTramXtc(TestArguments, TestEnvironmentVariables):
         # verify copying of states from temp file
         parsed_states = components_root.find("{tram:components}states")  # noqa components_root is always set
         assert len(parsed_states) == 1
+
+    @pytest.mark.requires_MDAnalysis
+    def test_tram_xtc_sample_mdanalysis_with_high_threshold(self, args_sample_mdanalysis_with_high_threshold, env_vars_tram_xtc_default):
+        main()
+        assert len(list(args_sample_mdanalysis_with_high_threshold.iterdir())) == 2  # components XML & edges BND
+
+        xml_f = str(args_sample_mdanalysis_with_high_threshold / "sample_components.xml")
+        assert os.path.exists(xml_f)
+        assert IOServiceRegistry.XML.single_service().validate_xml(xml_f)
+
+        with open(xml_f) as file:
+            xml_lines = file.readlines()
+
+        # verify XML structure
+        try:
+            components_root = ET.fromstringlist(xml_lines)
+        except ParseError:
+            pytest.fail(reason="Unable to parse constructed XML file.")
+
+        # verify copying of states from temp file
+        parsed_states = components_root.find("{tram:components}states")  # noqa components_root is always set
+        assert len(parsed_states) == 1  # no hydrogen bonds result in no differences between the frames
 
     @pytest.mark.requires_MDAnalysis
     def test_tram_xtc_sample_spliced_mdanalysis(self, args_sample_spliced_mdanalysis, env_vars_tram_xtc_default):

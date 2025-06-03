@@ -3,7 +3,7 @@ import os
 import sys
 import textwrap
 import time
-from typing import Dict, Literal
+from typing import Dict, Literal, Optional
 
 from TRAMbio.services import IOServiceRegistry, WorkflowServiceRegistry, DefaultParameterRegistry, ParameterRegistry
 
@@ -13,7 +13,7 @@ from pathvalidate import sanitize_filename
 import multiprocessing as mp
 
 from TRAMbio import set_log_level
-from TRAMbio.services.parameter import XtcParameter, GeneralWorkflowParameter
+from TRAMbio.services.parameter import XtcParameter, GeneralWorkflowParameter, HydrogenBondParameter
 from TRAMbio.util.functions.argparse.base_parser import parse_args_for
 from TRAMbio.util.structure_library.argparse import OptionsDictionary
 
@@ -53,9 +53,9 @@ _CLI_OPTIONS: Dict[str, OptionsDictionary] = {
         default=lambda argv: os.cpu_count() - 1),
     'threshold': OptionsDictionary(
         id=['-t', '--threshold'], args=dict(type=float, metavar='THRESHOLD', help=textwrap.dedent(
-            """Energy threshold for inclusion of hydrogen bonds. All bonds with energy lower or equal to this threshold are included. (default: 0.0)
+            f"""Energy threshold for inclusion of hydrogen bonds. All bonds with energy lower or equal to this threshold are included. (default: {DefaultParameterRegistry.get_parameter(HydrogenBondParameter.ENERGY_THRESHOLD.value):.3f})
             """)),
-        default=lambda argv: 0.0),
+        default=lambda argv: None),
     'stride': OptionsDictionary(
         id=['-s', '--stride'], args=dict(type=int, metavar='STRIDE', help=textwrap.dedent(
             """Only processes every stride-th frame. (default: 50)
@@ -83,7 +83,7 @@ def run_pipeline(
         out_prefix: str,
         stride: int,
         module: str,
-        energy_threshold: float,
+        energy_threshold: Optional[float],
         cores: int = os.cpu_count() - 1,
         store_edges: bool = False,
         verbose: bool = False
@@ -101,6 +101,9 @@ def run_pipeline(
     parameter_registry.set_parameter(XtcParameter.STRIDE.value, stride)
     parameter_registry.set_parameter(XtcParameter.MODULE.value, module)
     parameter_registry.set_parameter(GeneralWorkflowParameter.VERBOSE.value, verbose)
+
+    if energy_threshold:
+        parameter_registry.set_parameter(HydrogenBondParameter.ENERGY_THRESHOLD.value, energy_threshold)
 
     # Run Pebble Game on frames
     frame_generator = xtc_workflow_service.trajectory_to_components(

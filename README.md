@@ -73,7 +73,7 @@ pip install .[all]
 Execution of the general (k,l)-Pebble Game via API:
 ```pycon
 >>> import networkx as nx  # TODO
->>> from tram.pebble_game.pebble_game import run_pebble_game
+>>> from TRAMbio.pebble_game.pebble_game import run_pebble_game
 >>> graph = nx.complete_graph(5)
 >>> rho, _ , graph_type = run_pebble_game(graph, k=2, l=3)
 >>> print(f"The graph is {graph_type} with {rho} redundant edges.")

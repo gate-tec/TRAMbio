@@ -12,6 +12,7 @@ __all__ = ["InteractionType", "INTERACTION_RANKING", "map_interaction_ranking"]
 class InteractionType(Enum):
     COVALENT = 'covalent'
     PEPTIDE_BOND = 'peptide_bond'
+    PHOSPHODIESTER_BOND = 'phosphodiester_bond'
     SS_BOND = 'disulphide'
     SALT_BRIDGE = 'salt_bridge'
     H_BOND = 'hbond'
@@ -27,6 +28,7 @@ class InteractionType(Enum):
 INTERACTION_RANKING = {
     InteractionType.COVALENT.value: 0,
     InteractionType.PEPTIDE_BOND.value: 1,
+    InteractionType.PHOSPHODIESTER_BOND.value: 1,  # can have PEPTIDE_BOND value, since a double assignment is impossible
     InteractionType.SS_BOND.value: 2,
     InteractionType.SALT_BRIDGE.value: 3,
     InteractionType.H_BOND.value: 4,

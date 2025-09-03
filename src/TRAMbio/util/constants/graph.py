@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple, Union
 # Pebble Graph Constants #####
 ##############################
 
-RESI_GRAPH_TEMPLATES: Dict[str, Dict[str, List[Union[Tuple[str, int], Tuple[str, int, bool]]]]] = {
+AA_RESI_GRAPH_TEMPLATES: Dict[str, Dict[str, List[Union[Tuple[str, int], Tuple[str, int, bool]]]]] = {
     'ALA': {
         'N': [('CA', 5)],
         'CA': [('C', 5)],
@@ -246,10 +246,195 @@ Templates for mapping well-defined pebble graph edges for each amino acid.
 TBA
 
 Third value in tuple indicates whether the edge should be counted as regular covalent bond.
-If ``False``, the edge only counts towards pebble graph stability.
+If ``False``, the edge only counts towards pebble graph stability. Default ``True``.
 """
 
-STANDARD_RESIDUES = list(RESI_GRAPH_TEMPLATES.keys())
+NA_RESI_GRAPH_TEMPLATES: Dict[str, Dict[str, List[Union[Tuple[str, int], Tuple[str, int, bool]]]]] = {
+    '  A': {
+        'OP1': [('P', 5), ('OP2', 2, False)],
+        'OP2': [('P', 5)],
+        'P': [("O5'", 5)],
+        "O5'": [("C5'", 5)],
+        "C5'": [("C4'", 5)],
+        "O4'": [("C4'", 5), ("C1'", 5)],
+        "C4'": [("C3'", 5)],
+        "C3'": [("O3'", 5)],
+        "O2'": [("C2'", 5)],
+        "C2'": [("C3'", 5)],
+        "C1'": [("C2'", 5)],
+        'N9': [("C1'", 5)],
+        'C8': [('N9', 5)],
+        'N7': [('C8', 6)],
+        'C4': [('N9', 6)],
+        'C5': [('C4', 6), ('N7', 5)],
+        'C6': [('C5', 5), ('N1', 6)],
+        'N6': [('C6', 5)],
+        'N3': [('C4', 5)],
+        'C2': [('N3', 6)],
+        'N1': [('C2', 5)],
+    },
+    '  C': {
+        'OP1': [('P', 5), ('OP2', 2, False)],
+        'OP2': [('P', 5)],
+        'P': [("O5'", 5)],
+        "O5'": [("C5'", 5)],
+        "C5'": [("C4'", 5)],
+        "O4'": [("C4'", 5), ("C1'", 5)],
+        "C4'": [("C3'", 5)],
+        "C3'": [("O3'", 5)],
+        "O2'": [("C2'", 5)],
+        "C2'": [("C3'", 5)],
+        "C1'": [("C2'", 5)],
+        'N1': [("C1'", 5)],
+        'C6': [('N1', 5)],
+        'C5': [('C6', 6)],
+        'C2': [('N1', 5)],
+        'O2': [('C2', 6)],
+        'N3': [('C2', 5)],
+        'C4': [('N3', 6), ('C5', 5)],
+        'N4': [('C4', 5)],
+    },
+    '  G': {
+        'OP1': [('P', 5), ('OP2', 2, False)],
+        'OP2': [('P', 5)],
+        'P': [("O5'", 5)],
+        "O5'": [("C5'", 5)],
+        "C5'": [("C4'", 5)],
+        "O4'": [("C4'", 5), ("C1'", 5)],
+        "C4'": [("C3'", 5)],
+        "C3'": [("O3'", 5)],
+        "O2'": [("C2'", 5)],
+        "C2'": [("C3'", 5)],
+        "C1'": [("C2'", 5)],
+        'N9': [("C1'", 5)],
+        'C8': [('N9', 5)],
+        'N7': [('C8', 6)],
+        'C4': [('N9', 6)],
+        'C5': [('C4', 6), ('N7', 5)],
+        'C6': [('C5', 5), ('N1', 5)],
+        'O6': [('C6', 6)],
+        'N3': [('C4', 5)],
+        'C2': [('N3', 6)],
+        'N1': [('C2', 5)],
+        'N2': [('C2', 5)],
+    },
+    '  U': {
+        'OP1': [('P', 5), ('OP2', 2, False)],
+        'OP2': [('P', 5)],
+        'P': [("O5'", 5)],
+        "O5'": [("C5'", 5)],
+        "C5'": [("C4'", 5)],
+        "O4'": [("C4'", 5), ("C1'", 5)],
+        "C4'": [("C3'", 5)],
+        "C3'": [("O3'", 5)],
+        "O2'": [("C2'", 5)],
+        "C2'": [("C3'", 5)],
+        "C1'": [("C2'", 5)],
+        'N1': [("C1'", 5)],
+        'C6': [('N1', 5)],
+        'C5': [('C6', 6)],
+        'C2': [('N1', 5)],
+        'O2': [('C2', 6)],
+        'N3': [('C2', 5)],
+        'C4': [('N3', 5), ('C5', 5)],
+        'O4': [('C4', 6)],
+    },
+    ' DA': {
+        'OP1': [('P', 5), ('OP2', 2, False)],
+        'OP2': [('P', 5)],
+        'P': [("O5'", 5)],
+        "O5'": [("C5'", 5)],
+        "C5'": [("C4'", 5)],
+        "O4'": [("C4'", 5), ("C1'", 5)],
+        "C4'": [("C3'", 5)],
+        "C3'": [("O3'", 5)],
+        "C2'": [("C3'", 5)],
+        "C1'": [("C2'", 5)],
+        'N9': [("C1'", 5)],
+        'C8': [('N9', 5)],
+        'N7': [('C8', 6)],
+        'C4': [('N9', 6)],
+        'C5': [('C4', 6), ('N7', 5)],
+        'C6': [('C5', 5), ('N1', 6)],
+        'N6': [('C6', 5)],
+        'N3': [('C4', 5)],
+        'C2': [('N3', 6)],
+        'N1': [('C2', 5)],
+    },
+    ' DC': {
+        'OP1': [('P', 5), ('OP2', 2, False)],
+        'OP2': [('P', 5)],
+        'P': [("O5'", 5)],
+        "O5'": [("C5'", 5)],
+        "C5'": [("C4'", 5)],
+        "O4'": [("C4'", 5), ("C1'", 5)],
+        "C4'": [("C3'", 5)],
+        "C3'": [("O3'", 5)],
+        "C2'": [("C3'", 5)],
+        "C1'": [("C2'", 5)],
+        'N1': [("C1'", 5)],
+        'C6': [('N1', 5)],
+        'C5': [('C6', 6)],
+        'C2': [('N1', 5)],
+        'O2': [('C2', 6)],
+        'N3': [('C2', 5)],
+        'C4': [('N3', 6), ('C5', 5)],
+        'N4': [('C4', 5)],
+    },
+    ' DG': {
+        'OP1': [('P', 5), ('OP2', 2, False)],
+        'OP2': [('P', 5)],
+        'P': [("O5'", 5)],
+        "O5'": [("C5'", 5)],
+        "C5'": [("C4'", 5)],
+        "O4'": [("C4'", 5), ("C1'", 5)],
+        "C4'": [("C3'", 5)],
+        "C3'": [("O3'", 5)],
+        "C2'": [("C3'", 5)],
+        "C1'": [("C2'", 5)],
+        'N9': [("C1'", 5)],
+        'C8': [('N9', 5)],
+        'N7': [('C8', 6)],
+        'C4': [('N9', 6)],
+        'C5': [('C4', 6), ('N7', 5)],
+        'C6': [('C5', 5), ('N1', 5)],
+        'O6': [('C6', 6)],
+        'N3': [('C4', 5)],
+        'C2': [('N3', 6)],
+        'N1': [('C2', 5)],
+        'N2': [('C2', 5)],
+    },
+    ' DT': {
+        'OP1': [('P', 5), ('OP2', 2, False)],
+        'OP2': [('P', 5)],
+        'P': [("O5'", 5)],
+        "O5'": [("C5'", 5)],
+        "C5'": [("C4'", 5)],
+        "O4'": [("C4'", 5), ("C1'", 5)],
+        "C4'": [("C3'", 5)],
+        "C3'": [("O3'", 5)],
+        "C2'": [("C3'", 5)],
+        "C1'": [("C2'", 5)],
+        'N1': [("C1'", 5)],
+        'C6': [('N1', 5)],
+        'C5': [('C6', 6)],
+        'C7': [('C5', 5)],
+        'C2': [('N1', 5)],
+        'O2': [('C2', 6)],
+        'N3': [('C2', 5)],
+        'C4': [('N3', 5), ('C5', 5)],
+        'O4': [('C4', 6)],
+    }
+}
+
+RESI_GRAPH_TEMPLATES: Dict[str, Dict[str, List[Union[Tuple[str, int], Tuple[str, int, bool]]]]] = \
+    dict(**AA_RESI_GRAPH_TEMPLATES, **NA_RESI_GRAPH_TEMPLATES)
+
+AA_RESIDUES = list(AA_RESI_GRAPH_TEMPLATES.keys())
+
+NA_RESIDUES = list(NA_RESI_GRAPH_TEMPLATES.keys())
+
+STANDARD_RESIDUES = AA_RESIDUES + NA_RESIDUES
 
 HETATM_GRAPH_TEMPLATES: Dict[str, Dict[str, List[Tuple[str, int]]]] = {
     'ACE': {
@@ -289,7 +474,15 @@ RESIDUE_HBOND_DONORS: Dict[str, Dict[str, int]] = {
     "THR": {"OG1": 1},
     "TRP": {"NE1": 1},
     "TYR": {"OH": 1},
-    "PRO": {"N": 0}  # explicitly exclude Proline main chain N
+    "PRO": {"N": 0},  # explicitly exclude Proline main chain N
+    "  A": {"N6": 2, "C2": 1},
+    "  C": {"N4": 2},
+    "  G": {"N1": 1, "N2": 2},
+    "  U": {"N3": 1},
+    " DA": {"N6": 2, "C2": 1},
+    " DC": {"N4": 2},
+    " DG": {"N1": 1, "N2": 2},
+    " DT": {"N3": 1},
 }
 """
 Number of hydrogen bonds each donor atom can enter.
@@ -316,6 +509,14 @@ RESIDUE_HBOND_ACCEPTORS: Dict[str, Dict[str, int]] = {
     "SER": {"OG": 2},
     "THR": {"OG1": 2},
     "TYR": {"OH": 1},
+    "  A": {"N1": 1},
+    "  C": {"O2": 2, "N3": 1},
+    "  G": {"O6": 2},
+    "  U": {"O2": 2, "O4": 2},
+    " DA": {"N1": 1},
+    " DC": {"O2": 2, "N3": 1},
+    " DG": {"O6": 2},
+    " DT": {"O2": 2, "O4": 2},
 }
 """
 Number of hydrogen bonds each acceptor atom can enter.
@@ -332,8 +533,28 @@ DEFAULT_HYBRIDIZATION: Dict[str, int] = {
     "C": 2,
     "O": 2,
     "OXT": 2,
-    "CB": 3
+    "CB": 3,
+    "P": 3,
+    "OP1": 2,
+    "OP2": 2,
+    "O5'": 3,
+    "C5'": 3,
+    "O4'": 3,
+    "C4'": 3,
+    "O3'": 3,
+    "C3'": 3,
+    "O2'": 3,
+    "C1'": 3,
 }
+"""
+
+
+Hybridization states for the DNA and RNA phosphate is taken from
+`Müller (2017)`_.
+
+.. _Müller (2017):
+   https://doi.org/10.1007/s40828-017-0046-8
+"""
 
 RESIDUE_ATOM_HYBRIDIZATION: Dict[str, Dict[str, int]] = {
     "VAL": {"CG1": 3, "CG2": 3},
@@ -359,6 +580,14 @@ RESIDUE_ATOM_HYBRIDIZATION: Dict[str, Dict[str, int]] = {
     "HIP": {"CG": 2, "CD2": 2, "ND1": 2, "CE1": 2, "NE2": 2},
     "LYS": {"CG": 3, "CD": 3, "CE": 3, "NZ": 3},
     "ARG": {"CG": 3, "CD": 3, "NE": 2, "CZ": 2, "NH1": 2, "NH2": 2},
+    "  A": {"N9": 2, "C8": 2, "N7": 2, "C6": 2, "N6": 3, "C5": 2, "C4": 2, "N3": 2, "C2": 2, "N1": 2},
+    "  C": {"N1": 2, "C2": 2, "O2": 2, "N3": 2, "C4": 3, "N4": 3, "C5": 2, "C6": 2},
+    "  G": {"N9": 2, "C8": 2, "N7": 2, "C6": 2, "O6": 2, "C5": 2, "C4": 2, "N3": 2, "C2": 2, "N1": 2, "N2": 3},
+    "  U": {"N1": 2, "C2": 2, "O2": 2, "N3": 2, "C4": 3, "O4": 2, "C5": 2, "C6": 2},
+    " DA": {"N9": 2, "C8": 2, "N7": 2, "C6": 2, "N6": 3, "C5": 2, "C4": 2, "N3": 2, "C2": 2, "N1": 2},
+    " DC": {"N1": 2, "C2": 2, "O2": 2, "N3": 2, "C4": 3, "N4": 3, "C5": 2, "C6": 2},
+    " DG": {"N9": 2, "C8": 2, "N7": 2, "C6": 2, "O6": 2, "C5": 2, "C4": 2, "N3": 2, "C2": 2, "N1": 2, "N2": 3},
+    " DT": {"N1": 2, "C2": 2, "O2": 2, "N3": 2, "C4": 3, "O4": 2, "C5": 2, "C6": 2, "C7": 3},
 }
 
 #################################
@@ -377,6 +606,14 @@ RING_NORMAL_ATOMS: Dict[str, Dict[str, int]] = {
     "PHE": {"CG": 0, "CE1": 1, "CE2": 2},
     "TRP": {"CD2": 0, "CZ2": 1, "CZ3": 2},
     "TYR": {"CG": 0, "CE1": 1, "CE2": 2},
+    "  A": {"N9": 0, "C6": 1, "C2": 2},
+    "  C": {"N1": 0, "N3": 1, "C5": 2},
+    "  G": {"N9": 0, "C6": 1, "C2": 2},
+    "  U": {"N1": 0, "N3": 1, "C5": 2},
+    " DA": {"N9": 0, "C6": 1, "C2": 2},
+    " DC": {"N1": 0, "N3": 1, "C5": 2},
+    " DG": {"N9": 0, "C6": 1, "C2": 2},
+    " DT": {"N1": 0, "N3": 1, "C5": 2},
 }
 
 RIGID_RING_ATOMS: Dict[str, List[str]] = {
@@ -387,5 +624,13 @@ RIGID_RING_ATOMS: Dict[str, List[str]] = {
     "PHE": ["CG", "CD1", "CD2", "CE1", "CE2", "CZ"],
     "TRP": ["CG", "CD1", "CD2", "NE1", "CE2", "CE3", "CZ2", "CZ3", "CH2"],
     "TYR": ["CG", "CD1", "CD2", "CE1", "CE2", "CZ"],
-    "PRO": ["N", "CA", "CB", "CG", "CD"]
+    "PRO": ["N", "CA", "CB", "CG", "CD"],
+    "  A": ["N9", "C8", "N7", "C6", "C5", "C4", "N3", "C2", "N1"],
+    "  C": ["N1", "C2", "O2", "N3", "C4", "C5", "C6"],
+    "  G": ["N9", "C8", "N7", "C6", "O6", "C5", "C4", "N3", "C2", "N1"],
+    "  U": ["N1", "C2", "O2", "N3", "C4", "O4", "C5", "C6"],
+    " DA": ["N9", "C8", "N7", "C6", "C5", "C4", "N3", "C2", "N1"],
+    " DC": ["N1", "C2", "O2", "N3", "C4", "C5", "C6"],
+    " DG": ["N9", "C8", "N7", "C6", "O6", "C5", "C4", "N3", "C2", "N1"],
+    " DT": ["N1", "C2", "O2", "N3", "C4", "O4", "C5", "C6"],
 }

@@ -17,6 +17,9 @@ COVALENT_RADII: Dict[str, float] = {
     "Ndb": 0.62,
     "Hsb": 0.37,
     "Ssb": 1.04,
+    "Psb": 1.11,
+    "Pres": 1.06,
+    "Pdb": 1.02
 }
 """
 Covalent radii for OpenSCAD output.
@@ -52,6 +55,16 @@ DEFAULT_BOND_STATE: Dict[str, str] = {
     "HZ1": "Hsb",
     "HZ2": "Hsb",
     "HZ3": "Hsb",
+    "P": "Pres",
+    "OP1": "Ores",
+    "OP2": "Ores",
+    "O5'": "Osb",
+    "C5'": "Csb",
+    "O4'": "Osb",
+    "C4'": "Csb",
+    "O3'": "Osb",
+    "C3'": "Csb",
+    "C1'": "Csb",
 }
 """Assignment of atom classes to atomic radii.
 
@@ -128,6 +141,34 @@ RESIDUE_ATOM_BOND_STATE: Dict[str, Dict[str, str]] = {
         "NH1": "Nres",
         "NH2": "Nres",
     },
+    "A": {
+        "C2'": "Csb"
+    },
+    "C": {
+        "C2'": "Csb"
+    },
+    "G": {
+        "C2'": "Csb"
+    },
+    "U": {
+        "C2'": "Csb"
+    },
+    "DA": {
+        "O2'": "Odb",
+        "C2'": "Cdb"
+    },
+    "DC": {
+        "O2'": "Odb",
+        "C2'": "Cdb"
+    },
+    "DG": {
+        "O2'": "Odb",
+        "C2'": "Cdb"
+    },
+    "DT": {
+        "O2'": "Odb",
+        "C2'": "Cdb"
+    }
 }
 """Assignment of consituent atom classes with each standard residue to atomic radii.
 

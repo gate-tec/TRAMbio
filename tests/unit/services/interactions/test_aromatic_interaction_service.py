@@ -8,7 +8,9 @@ from TRAMbio.services.parameter import AromaticInteractionParameter, GeneralWork
 from TRAMbio.util.constants.interaction import InteractionType
 from TRAMbio.util.structure_library.graph_struct import GraphKey
 from tests.conftest import inject_pytest_logger
-from tests.util.graphs import construct_protein_graph_base, graph_phe_aromatic_xy_plane
+from tests.util.graphs import graph_phe_aromatic_xy_plane
+from tests.util.graphs_rna import graph_adenine as graph_rna_a, graph_guanine as graph_rna_g
+from tests.util.protein_graph_utils import construct_protein_graph_base
 
 
 ##################
@@ -147,6 +149,26 @@ class TestMockGraphs:
             pb=pb1 + pb2
         )
 
+    # RNA
+
+    @pytest.fixture
+    def mock_protein_graph_rna_pi(self):
+        coords1, hm1, cov1, pe1, pm1, pb1 = graph_rna_g(1, 1)
+        coords2, hm2, cov2, pe2, pm2, pb2 = graph_rna_a(len(coords1) + 2, 2, -0.32, 1.53, -3.3, rotations=[(-36, 'Y'), (-15, 'Z'), (10, 'X')])
+        others = [
+            ["TER", f"{len(coords1) + 1:5d}", len(coords1) + 1]
+        ]
+
+        yield construct_protein_graph_base(
+            coords=coords1 + coords2,
+            others=others,
+            hm=hm1 + hm2,
+            cov=cov1 + cov2,
+            pe=pe1 + pe2,
+            pm=dict(pm1, **pm2),
+            pb=pb1 + pb2
+        )
+
 
 #############
 # Tests #####
@@ -277,3 +299,18 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
         info_line = next(filter(lambda x: x.startswith("INFO"), str(captured).split("\n")), None)
         assert info_line is not None
         assert re.search(r"1 aromatic", info_line)
+
+    # RNA PI Stacking
+    def test_detect_rna_pi_stacking(self, mock_protein_graph_rna_pi, parameters_aromatic_interactions_default):
+        interaction_service = InteractionServiceRegistry.NON_COV.query_service(self.TESTED_SERVICE)
+        protein_graph = mock_protein_graph_rna_pi
+
+        interaction_service.apply_interactions(protein_graph, parameters_aromatic_interactions_default)
+
+        assert len(protein_graph.graphs['pebble'].graph[GraphKey.NON_COVALENT_EDGES.value]) == 1
+        bond = protein_graph.graphs['pebble'].graph[GraphKey.NON_COVALENT_EDGES.value][0]
+        assert 'A0001-  G:N9' in bond
+        assert 'A0002-  A:N9' in bond
+        assert bond[2] == 3
+
+        assert InteractionType.PI_STACKING.value in protein_graph.graphs['full'].edges['A0001-  G:N9', 'A0002-  A:N9']['kind']

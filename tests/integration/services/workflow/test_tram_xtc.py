@@ -64,6 +64,23 @@ class TestEnvironmentVariables:
         importlib.reload(tram_workflow_registry)
 
 
+    @pytest.fixture
+    def env_vars_tram_xtc_only_hbonds(self, monkeypatch):
+        monkeypatch.setenv(HydrogenBondParameter.INCLUDE.value, "true")
+        monkeypatch.setenv(HydrophobicInteractionParameter.INCLUDE.value, "false")
+        monkeypatch.setenv(DisulphideBridgeParameter.INCLUDE.value, "false")
+        monkeypatch.setenv(AromaticInteractionParameter.INCLUDE.value, "false")
+        monkeypatch.setenv(CationPiInteractionParameter.INCLUDE.value, "false")
+        monkeypatch.setenv(PdbEntryInteractionParameter.LINK_INCLUDE.value, "false")
+        monkeypatch.setenv(PdbEntryInteractionParameter.SSBOND_INCLUDE.value, "false")
+        monkeypatch.setenv(PdbEntryInteractionParameter.CONECT_INCLUDE.value, "false")
+
+        # force reload registry to load new environment variables
+        importlib.reload(tram_interaction_registry)
+        importlib.reload(tram_structure_registry)
+        importlib.reload(tram_workflow_registry)
+
+
 #################
 # Arguments #####
 #################
@@ -209,7 +226,7 @@ class TestArguments:
 # General Tests #####
 #####################
 
-# @pytest.mark.slow
+@pytest.mark.slow
 class TestTramXtc(TestArguments, TestEnvironmentVariables):
 
     @pytest.mark.requires_MDAnalysis
@@ -257,7 +274,7 @@ class TestTramXtc(TestArguments, TestEnvironmentVariables):
         assert len(parsed_states) == 1
 
     @pytest.mark.requires_MDAnalysis
-    def test_tram_xtc_sample_mdanalysis_with_high_threshold(self, args_sample_mdanalysis_with_high_threshold, env_vars_tram_xtc_default):
+    def test_tram_xtc_sample_mdanalysis_with_high_threshold(self, args_sample_mdanalysis_with_high_threshold, env_vars_tram_xtc_only_hbonds):
         main()
         assert len(list(args_sample_mdanalysis_with_high_threshold.iterdir())) == 2  # components XML & edges BND
 

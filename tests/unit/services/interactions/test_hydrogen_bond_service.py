@@ -8,8 +8,13 @@ from TRAMbio.util.structure_library.graph_struct import GraphKey
 from TRAMbio.services import InteractionServiceRegistry, ParameterRegistry
 from TRAMbio.services.parameter import HydrogenBondParameter, GeneralWorkflowParameter
 from tests.conftest import inject_pytest_logger
-from tests.util.graphs import construct_protein_graph_base, graph_arg_donor, graph_glu_acceptor, graph_gly_donor, \
-    graph_gly_acceptor, graph_asn_donor, graph_ser_acceptor, graph_lys_donor, graph_cyh_acceptor
+from tests.util.graphs import graph_arg_donor, graph_glu_acceptor, graph_gly_donor, graph_gly_acceptor, \
+    graph_asn_donor, graph_ser_acceptor, graph_lys_donor, graph_cyh_acceptor
+from tests.util.graphs_dna import graph_adenine as graph_dna_a, graph_thymine as graph_dna_t, \
+    graph_guanine as graph_dna_g, graph_cytosine as graph_dna_c
+from tests.util.graphs_rna import graph_adenine as graph_rna_a, graph_uracil as graph_rna_u, \
+    graph_guanine as graph_rna_g, graph_cytosine as graph_rna_c
+from tests.util.protein_graph_utils import construct_protein_graph_base
 
 
 ##################
@@ -379,6 +384,83 @@ class TestMockGraphs:
             pe=pe,
             pm=pm,
             pb=pb
+        )
+
+    # DNA & RNA
+
+    @pytest.fixture
+    def mock_protein_graph_dna_a_t(self):
+        coords1, hm1, cov1, pe1, pm1, pb1 = graph_dna_a(1, 1)
+        coords2, hm2, cov2, pe2, pm2, pb2 = graph_dna_t(len(coords1) + 2, 2, -0.5, 2.9, -0.25, rotations=[(180, 'Z'), (-175, 'Y')])
+        others = [
+            ["TER", f"{len(coords1) + 1:5d}", len(coords1) + 1]
+        ]
+
+        yield construct_protein_graph_base(
+            coords=coords1 + coords2,
+            others=others,
+            hm=hm1 + hm2,
+            cov=cov1 + cov2,
+            pe=pe1 + pe2,
+            pm=dict(pm1, **pm2),
+            pb=pb1 + pb2
+        )
+
+    @pytest.fixture
+    def mock_protein_graph_dna_g_c(self):
+        coords1, hm1, cov1, pe1, pm1, pb1 = graph_dna_g(1, 1)
+        coords2, hm2, cov2, pe2, pm2, pb2 = graph_dna_c(len(coords1) + 2, 2, 0, 2.9, 0,
+                                                        rotations=[(180, 'Z'), (180, 'Y')])
+        others = [
+            ["TER", f"{len(coords1) + 1:5d}", len(coords1) + 1]
+        ]
+
+        yield construct_protein_graph_base(
+            coords=coords1 + coords2,
+            others=others,
+            hm=hm1 + hm2,
+            cov=cov1 + cov2,
+            pe=pe1 + pe2,
+            pm=dict(pm1, **pm2),
+            pb=pb1 + pb2
+        )
+
+    @pytest.fixture
+    def mock_protein_graph_rna_a_u(self):
+        coords1, hm1, cov1, pe1, pm1, pb1 = graph_rna_a(1, 1)
+        coords2, hm2, cov2, pe2, pm2, pb2 = graph_rna_u(len(coords1) + 2, 2, -0.5, 2.9, -0.25,
+                                                        rotations=[(180, 'Z'), (-175, 'Y')])
+        others = [
+            ["TER", f"{len(coords1) + 1:5d}", len(coords1) + 1]
+        ]
+
+        yield construct_protein_graph_base(
+            coords=coords1 + coords2,
+            others=others,
+            hm=hm1 + hm2,
+            cov=cov1 + cov2,
+            pe=pe1 + pe2,
+            pm=dict(pm1, **pm2),
+            pb=pb1 + pb2
+        )
+
+    @pytest.fixture
+    def mock_protein_graph_rna_g_c(self):
+        coords1, hm1, cov1, pe1, pm1, pb1 = graph_rna_g(1, 1)
+        coords2, hm2, cov2, pe2, pm2, pb2 = graph_rna_c(len(coords1) + 2, 2, 0, 2.9, 0,
+                                                        rotations=[(180, 'Z'), (180, 'Y')])
+        others = [
+            ["TER", f"{len(coords1) + 1:5d}", len(coords1) + 1]
+        ]
+
+        yield construct_protein_graph_base(
+            coords=coords1 + coords2,
+            others=others,
+            hm=hm1 + hm2,
+            cov=cov1 + cov2,
+            pe=pe1 + pe2,
+            pm=dict(pm1, **pm2),
+            pb=pb1 + pb2
         )
 
 
@@ -800,3 +882,101 @@ class TestApplyInteractions(TestMockGraphs, TestParameters):
 
         assert re.search(r"INFO \| .+ 1 hydrogen bonds", captured)
         assert re.search(r"INFO \| .+ 4 salt-bridges", captured)
+
+    # DNA & RNA
+
+    def test_detect_dna_a_t_hbonds(self, mock_protein_graph_dna_a_t, parameters_hbond_default):
+        interaction_service = InteractionServiceRegistry.NON_COV.query_service(self.TESTED_SERVICE)
+        protein_graph = mock_protein_graph_dna_a_t
+
+        interaction_service.apply_interactions(protein_graph, parameters_hbond_default, verbose=False)
+
+        bonds = protein_graph.graphs['pebble'].graph[GraphKey.QUANTIFIED_NON_COVALENT_EDGES.value]
+        assert len(bonds) == 2
+
+        bond_h61_o4 = next(filter(lambda x: 'A0001- DA:H61' in x, bonds), None)
+        assert bond_h61_o4 is not None
+        assert 'A0002- DT:O4' in bond_h61_o4
+        assert bond_h61_o4[2] == 5
+        assert bond_h61_o4[3] < 0
+
+        bond_h3_n1 = next(filter(lambda x: 'A0002- DT:H3' in x, bonds), None)
+        assert bond_h3_n1 is not None
+        assert 'A0001- DA:N1' in bond_h3_n1
+        assert bond_h3_n1[2] == 5
+        assert bond_h3_n1[3] < 0
+
+    def test_detect_dna_g_c_hbonds(self, mock_protein_graph_dna_g_c, parameters_hbond_default):
+        interaction_service = InteractionServiceRegistry.NON_COV.query_service(self.TESTED_SERVICE)
+        protein_graph = mock_protein_graph_dna_g_c
+
+        interaction_service.apply_interactions(protein_graph, parameters_hbond_default, verbose=False)
+
+        bonds = protein_graph.graphs['pebble'].graph[GraphKey.QUANTIFIED_NON_COVALENT_EDGES.value]
+        assert len(bonds) == 3
+
+        bond_h1_n3 = next(filter(lambda x: 'A0001- DG:H1' in x, bonds), None)
+        assert bond_h1_n3 is not None
+        assert 'A0002- DC:N3' in bond_h1_n3
+        assert bond_h1_n3[2] == 5
+        assert bond_h1_n3[3] < 0
+
+        bond_h22_o2 = next(filter(lambda x: 'A0001- DG:H22' in x, bonds), None)
+        assert bond_h22_o2 is not None
+        assert 'A0002- DC:O2' in bond_h22_o2
+        assert bond_h22_o2[2] == 5
+        assert bond_h22_o2[3] < 0
+
+        bond_h42_o6 = next(filter(lambda x: 'A0002- DC:H42' in x, bonds), None)
+        assert bond_h42_o6 is not None
+        assert 'A0001- DG:O6' in bond_h42_o6
+        assert bond_h42_o6[2] == 5
+        assert bond_h42_o6[3] < 0
+
+    def test_detect_rna_a_u_hbonds(self, mock_protein_graph_rna_a_u, parameters_hbond_default):
+        interaction_service = InteractionServiceRegistry.NON_COV.query_service(self.TESTED_SERVICE)
+        protein_graph = mock_protein_graph_rna_a_u
+
+        interaction_service.apply_interactions(protein_graph, parameters_hbond_default, verbose=False)
+
+        bonds = protein_graph.graphs['pebble'].graph[GraphKey.QUANTIFIED_NON_COVALENT_EDGES.value]
+        assert len(bonds) == 2
+
+        bond_h61_o4 = next(filter(lambda x: 'A0001-  A:H61' in x, bonds), None)
+        assert bond_h61_o4 is not None
+        assert 'A0002-  U:O4' in bond_h61_o4
+        assert bond_h61_o4[2] == 5
+        assert bond_h61_o4[3] < 0
+
+        bond_h3_n1 = next(filter(lambda x: 'A0002-  U:H3' in x, bonds), None)
+        assert bond_h3_n1 is not None
+        assert 'A0001-  A:N1' in bond_h3_n1
+        assert bond_h3_n1[2] == 5
+        assert bond_h3_n1[3] < 0
+
+    def test_detect_rna_g_c_hbonds(self, mock_protein_graph_rna_g_c, parameters_hbond_default):
+        interaction_service = InteractionServiceRegistry.NON_COV.query_service(self.TESTED_SERVICE)
+        protein_graph = mock_protein_graph_rna_g_c
+
+        interaction_service.apply_interactions(protein_graph, parameters_hbond_default, verbose=False)
+
+        bonds = protein_graph.graphs['pebble'].graph[GraphKey.QUANTIFIED_NON_COVALENT_EDGES.value]
+        assert len(bonds) == 3
+
+        bond_h1_n3 = next(filter(lambda x: 'A0001-  G:H1' in x, bonds), None)
+        assert bond_h1_n3 is not None
+        assert 'A0002-  C:N3' in bond_h1_n3
+        assert bond_h1_n3[2] == 5
+        assert bond_h1_n3[3] < 0
+
+        bond_h22_o2 = next(filter(lambda x: 'A0001-  G:H22' in x, bonds), None)
+        assert bond_h22_o2 is not None
+        assert 'A0002-  C:O2' in bond_h22_o2
+        assert bond_h22_o2[2] == 5
+        assert bond_h22_o2[3] < 0
+
+        bond_h42_o6 = next(filter(lambda x: 'A0002-  C:H42' in x, bonds), None)
+        assert bond_h42_o6 is not None
+        assert 'A0001-  G:O6' in bond_h42_o6
+        assert bond_h42_o6[2] == 5
+        assert bond_h42_o6[3] < 0

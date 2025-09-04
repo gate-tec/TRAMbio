@@ -243,8 +243,6 @@ AA_RESI_GRAPH_TEMPLATES: Dict[str, Dict[str, List[Union[Tuple[str, int], Tuple[s
 """
 Templates for mapping well-defined pebble graph edges for each amino acid.
 
-TBA
-
 Third value in tuple indicates whether the edge should be counted as regular covalent bond.
 If ``False``, the edge only counts towards pebble graph stability. Default ``True``.
 """
@@ -426,6 +424,12 @@ NA_RESI_GRAPH_TEMPLATES: Dict[str, Dict[str, List[Union[Tuple[str, int], Tuple[s
         'O4': [('C4', 6)],
     }
 }
+"""
+Templates for mapping well-defined pebble graph edges for nucleotide residue.
+
+Third value in tuple indicates whether the edge should be counted as regular covalent bond.
+If ``False``, the edge only counts towards pebble graph stability. Default ``True``.
+"""
 
 RESI_GRAPH_TEMPLATES: Dict[str, Dict[str, List[Union[Tuple[str, int], Tuple[str, int, bool]]]]] = \
     dict(**AA_RESI_GRAPH_TEMPLATES, **NA_RESI_GRAPH_TEMPLATES)

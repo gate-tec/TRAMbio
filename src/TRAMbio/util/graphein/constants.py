@@ -17,16 +17,26 @@ COVALENT_RADII: Dict[str, float] = {
     "Ndb": 0.62,
     "Hsb": 0.37,
     "Ssb": 1.04,
+    "Psb": 1.11,
+    "Pres": 1.06,
+    "Pdb": 1.02
 }
 """
 Covalent radii for OpenSCAD output.
-Adding ``Ores`` between ``Osb`` and ``Odb`` for ``Asp`` and ``Glu``, ``Nres`` between ``Nsb`` and ``Ndb`` for ``Arg``, as PDB does not specify
+Adding ``Ores`` between ``Osb`` and ``Odb`` for ``Asp`` and ``Glu``, ``Nres`` between ``Nsb`` and ``Ndb`` for ``Arg``, as PDB does not specify.
+Adding ``Pres`` between ``Psb`` and ``Pdb``.
 
 Covalent radii from:
 
-    Heyrovska, Raji : 'Atomic Structures of all the Twenty Essential Amino Acids and a Tripeptide, with Bond Lengths as Sums of Atomic Covalent Radii'
+    Heyrovska (2008) : 'Atomic Structures of all the Twenty Essential Amino Acids and a Tripeptide, with Bond Lengths as Sums of Atomic Covalent Radii'
 
 Paper: https://arxiv.org/pdf/0804.2488.pdf
+
+Covalent radii for ``Psb`` and ``Pdb`` from:
+
+    Pyykkö and Atsumi (2009) : 'Molecular Double-Bond Covalent Radii for Elements Li-E112'
+
+Paper: https://doi.org/10.1002/chem.200901472
 """
 
 DEFAULT_BOND_STATE: Dict[str, str] = {
@@ -52,6 +62,21 @@ DEFAULT_BOND_STATE: Dict[str, str] = {
     "HZ1": "Hsb",
     "HZ2": "Hsb",
     "HZ3": "Hsb",
+    "P": "Pres",
+    "OP1": "Ores",
+    "OP2": "Ores",
+    "O5'": "Osb",
+    "C5'": "Csb",
+    "O4'": "Osb",
+    "C4'": "Csb",
+    "O3'": "Osb",
+    "C3'": "Csb",
+    "C1'": "Csb",
+    "H5'": "Hsb",
+    "H5''": "Hsb",
+    "H4'": "Hsb",
+    "H3'": "Hsb",
+    "H1'": "Hsb",
 }
 """Assignment of atom classes to atomic radii.
 
@@ -128,6 +153,129 @@ RESIDUE_ATOM_BOND_STATE: Dict[str, Dict[str, str]] = {
         "NH1": "Nres",
         "NH2": "Nres",
     },
+    "A": {
+        "C2'": "Csb",
+        "H2'": "Hsb",
+        "H2''": "Hsb",
+        # Nucleo-base
+        "N1": "Ndb",
+        "C2": "Cdb",
+        "N3": "Ndb",
+        "C4": "Cdb",
+        "C5": "Cdb",
+        "C6": "Cdb",
+        "N6": "Nsb",
+        "N7": "Ndb",
+        "C8": "Cdb",
+        "N9": "Nsb"
+    },
+    "C": {
+        "C2'": "Csb",
+        "H2'": "Hsb",
+        "H2''": "Hsb",
+        # Nucleo-base
+        "N1": "Nsb",
+        "C2": "Cdb",
+        "O2": "Odb",
+        "N3": "Ndb",
+        "C4": "Cdb",
+        "N4": "Nsb",
+        "C5": "Cdb",
+        "C6": "Cdb"
+    },
+    "G": {
+        "C2'": "Csb",
+        "H2'": "Hsb",
+        "H2''": "Hsb",
+        # Nucleo-base
+        "N1": "Nsb",
+        "C2": "Cdb",
+        "N2": "Nsb",
+        "N3": "Ndb",
+        "C4": "Cdb",
+        "C5": "Cdb",
+        "C6": "Cdb",
+        "O6": "Odb",
+        "N7": "Ndb",
+        "C8": "Cdb",
+        "N9": "Nsb"
+    },
+    "U": {
+        "C2'": "Csb",
+        "H2'": "Hsb",
+        "H2''": "Hsb",
+        # Nucleo-base
+        "N1": "Nsb",
+        "C2": "Cdb",
+        "O2": "Odb",
+        "N3": "Nsb",
+        "C4": "Cdb",
+        "O4": "Odb",
+        "C5": "Cdb",
+        "C6": "Cdb"
+    },
+    "DA": {
+        "O2'": "Odb",
+        "C2'": "Cdb",
+        "HO2'": "Hsb",
+        # Nucleo-base
+        "N1": "Ndb",
+        "C2": "Cdb",
+        "N3": "Ndb",
+        "C4": "Cdb",
+        "C5": "Cdb",
+        "C6": "Cdb",
+        "N6": "Nsb",
+        "N7": "Ndb",
+        "C8": "Cdb",
+        "N9": "Nsb"
+    },
+    "DC": {
+        "O2'": "Odb",
+        "C2'": "Cdb",
+        "HO2'": "Hsb",
+        # Nucleo-base
+        "N1": "Nsb",
+        "C2": "Cdb",
+        "O2": "Odb",
+        "N3": "Ndb",
+        "C4": "Cdb",
+        "N4": "Nsb",
+        "C5": "Cdb",
+        "C6": "Cdb"
+    },
+    "DG": {
+        "O2'": "Odb",
+        "C2'": "Cdb",
+        "HO2'": "Hsb",
+        # Nucleo-base
+        "N1": "Nsb",
+        "C2": "Cdb",
+        "N2": "Nsb",
+        "N3": "Ndb",
+        "C4": "Cdb",
+        "C5": "Cdb",
+        "C6": "Cdb",
+        "O6": "Odb",
+        "N7": "Ndb",
+        "C8": "Cdb",
+        "N9": "Nsb"
+    },
+    "DT": {
+        "O2'": "Odb",
+        "C2'": "Cdb",
+        "HO2'": "Hsb",
+        # Nucleo-base
+        "N1": "Nsb",
+        "C2": "Cdb",
+        "O2": "Odb",
+        "N3": "Nsb",
+        "C4": "Cdb",
+        "O4": "Odb",
+        "C5": "Cdb",
+        "C6": "Cdb",
+        "C7": "Csb"
+    }
 }
 """Assignment of consituent atom classes with each standard residue to atomic radii.
 

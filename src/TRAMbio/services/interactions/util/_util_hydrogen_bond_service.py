@@ -148,7 +148,8 @@ def _calculate_gamma_angle(
         graphs: GraphDictionary,
         node_donor: str, node_accep: str,
         donor_pos: np.ndarray, acceptor_pos: np.ndarray,
-        dh_dist: np.ndarray
+        dh_dist: np.ndarray,
+        hybridization_df: pd.DataFrame
 ):
     # for donor use plane containing selected H-atom and base-atom
     try:
@@ -163,21 +164,59 @@ def _calculate_gamma_angle(
 
     # for acceptor use plane containing base atom (and possibly dist-2-atoms)
     acceptor_base_atoms = list(iter(graphs['atom'][node_accep]))
+    acceptor_plane_normal = None
+
     if len(acceptor_base_atoms) == 0:
         raise ValueError(f"No neighbor found for sp2-acceptor {node_accep}")
+    if len(acceptor_base_atoms) == 1 and hybridization_df.loc[hybridization_df['node_id'] == acceptor_base_atoms[0], ['hybridization']].to_numpy()[0] == 3:
+        # If the sole neighbor is sp3, then in general it is not possible to calculate the
+        # plane of the sp2-center.
+        #
+        # As a special case:
+        # For OP1 and OP2 in DNA or RNA backbone, the plane of their sp2-centers is assumed
+        # to be at maximum distance from each other, thus, perpendicular to the plane formed
+        # by OP1-P-OP2.
+        if (node_accep.endswith(":OP1")
+                and acceptor_base_atoms[0].endswith(":P")
+                and graphs['atom'].has_node(node_accep[:-3] + "OP2")):
+            phosphor_pos = graphs['atom'].nodes[acceptor_base_atoms[0]]["coords"]
+            acceptor_base_1_dist = phosphor_pos - acceptor_pos
+
+            op2_pos = graphs['atom'].nodes[node_accep[:-3] + "OP2"]["coords"]
+            op2_dist = op2_pos - phosphor_pos
+
+            acceptor_base_2_dist = np.cross(acceptor_base_1_dist, op2_dist)
+
+            acceptor_plane_normal = np.cross(acceptor_base_1_dist, acceptor_base_2_dist)
+        elif (node_accep.endswith(":OP2")
+                and acceptor_base_atoms[0].endswith(":P")
+                and graphs['atom'].has_node(node_accep[:-3] + "OP1")):
+            phosphor_pos = graphs['atom'].nodes[acceptor_base_atoms[0]]["coords"]
+            acceptor_base_1_dist = phosphor_pos - acceptor_pos
+
+            op1_pos = graphs['atom'].nodes[node_accep[:-3] + "OP1"]["coords"]
+            op1_dist = op1_pos - phosphor_pos
+
+            acceptor_base_2_dist = np.cross(acceptor_base_1_dist, op1_dist)
+
+            acceptor_plane_normal = np.cross(acceptor_base_1_dist, acceptor_base_2_dist)
+        else:
+            raise ValueError(f"Unable to compute plane of sp2-center at {node_accep} since its sole neighbor is sp3.")
+
     if len(acceptor_base_atoms) < 2:
         acceptor_base_atoms += list(n for n in graphs['atom'][acceptor_base_atoms[0]] if n != node_accep)
     if len(acceptor_base_atoms) < 2:
         # If still missing third atom in plane, gamma cannot be calculated
         raise ValueError(f"Insufficient number of atoms to calculate plane of sp2-center at {node_accep}")
 
-    acceptor_base_1_pos = graphs['atom'].nodes[acceptor_base_atoms[0]]["coords"]
-    acceptor_base_1_dist = acceptor_base_1_pos - acceptor_pos
+    if acceptor_plane_normal is None:
+        acceptor_base_1_pos = graphs['atom'].nodes[acceptor_base_atoms[0]]["coords"]
+        acceptor_base_1_dist = acceptor_base_1_pos - acceptor_pos
 
-    acceptor_base_2_pos = graphs['atom'].nodes[acceptor_base_atoms[1]]["coords"]
-    acceptor_base_2_dist = acceptor_base_2_pos - acceptor_pos
+        acceptor_base_2_pos = graphs['atom'].nodes[acceptor_base_atoms[1]]["coords"]
+        acceptor_base_2_dist = acceptor_base_2_pos - acceptor_pos
 
-    acceptor_plane_normal = np.cross(acceptor_base_1_dist, acceptor_base_2_dist)
+        acceptor_plane_normal = np.cross(acceptor_base_1_dist, acceptor_base_2_dist)
 
     gamma_angle = angle_between(donor_plane_normal, acceptor_plane_normal)
     if gamma_angle < 90.0:
@@ -243,7 +282,8 @@ def _handle_potential_hydrogen_bond(
         graphs: GraphDictionary,
         pdb_df: pd.DataFrame, hydrogen_mapping: pd.DataFrame,
         hydrogen_df: pd.DataFrame,
-        cation_atoms: pd.DataFrame, anion_atoms: pd.DataFrame
+        cation_atoms: pd.DataFrame, anion_atoms: pd.DataFrame,
+        hybridizations: pd.DataFrame
 ) -> Optional[List[HBondDictionary]]:
     node_1 = pdb_df["node_id"][i[0]]
     node_2 = pdb_df["node_id"][i[1]]
@@ -348,7 +388,8 @@ def _handle_potential_hydrogen_bond(
                 graphs=graphs,
                 node_donor=node_donor, node_accep=node_accep,
                 donor_pos=donor_pos, acceptor_pos=acceptor_pos,
-                dh_dist=dh_dist
+                dh_dist=dh_dist,
+                hybridization_df=hybridizations
             )
 
         # angle phi required
@@ -411,12 +452,9 @@ def calculate_hydrogen_and_salt_bridge_bonds(
     # label dataframe
     pdb_df = _label_h_bond_donors_acceptors(pdb_df=pdb_df, h_frame=hydrogen_mapping)
     # filter and label hybridization
-    pdb_df: pd.DataFrame = _label_hybridization(
-        pdb_df=pdb_df.loc[(pdb_df['hbond_donor'] > 0) | (pdb_df['hbond_acceptor'] > 0)].reset_index(drop=True)
-    )
-
-    if len(pdb_df) < 2:
-        return None, None
+    pdb_df: pd.DataFrame = _label_hybridization(pdb_df=pdb_df)
+    hybridizations: pd.DataFrame = pdb_df.loc[:, ['node_id', 'hybridization']]
+    pdb_df = pdb_df.loc[(pdb_df['hbond_donor'] > 0) | (pdb_df['hbond_acceptor'] > 0)].reset_index(drop=True)
 
     # get valid donor and acceptor atoms
     valid_donors, valid_acceptors = _get_valid_donor_acceptor_atoms(
@@ -453,7 +491,8 @@ def calculate_hydrogen_and_salt_bridge_bonds(
                 graphs,
                 pdb_df, hydrogen_mapping,
                 hydrogen_df,
-                cation_atoms, anion_atoms
+                cation_atoms, anion_atoms,
+                hybridizations
             )
 
             if result is None:

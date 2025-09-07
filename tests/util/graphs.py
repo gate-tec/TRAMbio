@@ -1,148 +1,8 @@
 import math
-from typing import Optional, List, Literal, Tuple
-
-import networkx as nx
-import numpy as np
+from typing import Optional, List, Tuple
 
 from TRAMbio.util.constants.interaction import InteractionType
-from TRAMbio.util.structure_library.graph_struct import GraphDictionary, GraphKey, ProteinGraph, \
-    initialize_graphs_from_dataframe
 from tests.util.protein_graph_utils import *
-
-
-def construct_protein_graph_base(coords, others, hm, cov, pe, pm, pb):
-    # Load dataframes
-    atom_df = load_as_atom_df(coords)
-    heavy_atom_df, hydrogen_df = split_into_heavy_atoms_and_hydrogens(atom_df=atom_df)
-    others_df = load_as_others_df(others)
-    hydrogen_mapping = load_as_hydrogen_mapping(hm)
-
-    # Construct base graph
-    graphs: GraphDictionary = initialize_graphs_from_dataframe(atom_df=atom_df, heavy_atom_df=heavy_atom_df)
-
-    # Place covalent edges
-    graphs["full"].add_edges_from(cov)
-    graphs["atom"].add_edges_from([entry for entry in cov if entry[0][10] != "H" and entry[1][10] != "H"])
-
-    # Construct pebbled graph
-    graphs["pebble"].add_edges_from(pe)
-    nx.set_node_attributes(graphs["pebble"], pm, "pebbles")
-    graphs["pebble"].graph[GraphKey.STANDARD_EDGES.value] += pb  # noqa: PyChram doesn't recognize the graph dictionary
-
-    return ProteinGraph(
-        graphs,
-        atom_df=atom_df,
-        others_df=others_df,
-        heavy_atom_df=heavy_atom_df,
-        hydrogen_df=hydrogen_df,
-        hydrogen_mapping=hydrogen_mapping
-    )
-
-
-def _format(
-        coords, hydrogen_mapping, covalent_edges, pebble_edges, pebble_map, pebble_bars, exclude
-):
-    if exclude is not None:
-        coords = [entry for entry in coords if entry[6] not in exclude]
-        hydrogen_mapping = [entry for entry in hydrogen_mapping if entry[0][10:] not in exclude and entry[1][10:] not in exclude]
-        covalent_edges = [entry for entry in covalent_edges if entry[0][10:] not in exclude and entry[1][10:] not in exclude]
-        pebble_edges = [entry for entry in pebble_edges if entry[0][10:] not in exclude and entry[1][10:] not in exclude]
-        pebble_map = {k: v for k, v in pebble_map.items() if k[10:] not in exclude}
-        pebble_bars = [entry for entry in pebble_bars if entry[0][10:] not in exclude and entry[1][10:] not in exclude]
-
-    coords = [
-        entry[:10] + [float("{:8.3f}".format(entry[10])), float("{:8.3f}".format(entry[11])), float("{:8.3f}".format(entry[12]))] + entry[13:]
-        for entry in coords
-    ]
-
-    return coords, hydrogen_mapping, covalent_edges, pebble_edges, pebble_map, pebble_bars
-
-
-def _modify_coords(coords, x_offset, y_offset, z_offset):
-    if x_offset == y_offset == z_offset == 0.0:
-        return coords
-    
-    return [
-        entry[:10] +
-        [
-            a + b
-            for a, b in zip([x_offset, y_offset, z_offset], entry[10:13])] +
-        entry[13:]
-        for entry in coords
-    ]
-
-
-def _apply_z_rotation(coords, z_rotation):
-    if z_rotation == 0.0:
-        return coords
-
-    theta = np.radians(z_rotation)
-    new_coords = []
-    for entry in coords:
-        x = entry[10]
-        y = entry[11]
-        z = entry[12]
-
-        new_x = round(x * np.cos(theta) - y * np.sin(theta), ndigits=4)
-        new_y = round(x * np.sin(theta) + y * np.cos(theta), ndigits=4)
-        new_z = z
-
-        new_coords.append(entry[:10] + [new_x, new_y, new_z] + entry[13:])
-
-    return new_coords
-
-
-def _apply_y_rotation(coords, y_rotation):
-    if y_rotation == 0.0:
-        return coords
-
-    theta = np.radians(y_rotation)
-    new_coords = []
-    for entry in coords:
-        x = entry[10]
-        y = entry[11]
-        z = entry[12]
-
-        new_x = round(x * np.cos(theta) + z * np.sin(theta), ndigits=4)
-        new_y = y
-        new_z = round(-x * np.sin(theta) + z * np.cos(theta), ndigits=4)
-
-        new_coords.append(entry[:10] + [new_x, new_y, new_z] + entry[13:])
-
-    return new_coords
-
-
-def _apply_x_rotation(coords, x_rotation):
-    if x_rotation == 0.0:
-        return coords
-
-    theta = np.radians(x_rotation)
-    new_coords = []
-    for entry in coords:
-        x = entry[10]
-        y = entry[11]
-        z = entry[12]
-
-        new_x = x
-        new_y = round(y * np.cos(theta) - z * np.sin(theta), ndigits=4)
-        new_z = round(y * np.sin(theta) + z * np.cos(theta), ndigits=4)
-
-        new_coords.append(entry[:10] + [new_x, new_y, new_z] + entry[13:])
-
-    return new_coords
-
-_AXIS_OPTIONS = Literal['X', 'Y', 'Z']
-_AXIS_MAPPING = {
-    'X': _apply_x_rotation,
-    'Y': _apply_y_rotation,
-    'Z': _apply_z_rotation
-}
-
-def _apply_rotations(coords, rotations: Optional[List[Tuple[float, _AXIS_OPTIONS]]] = None):
-    if rotations is not None:
-        for angle, axis in rotations:
-            coords = _AXIS_MAPPING[axis](coords, angle)
-    return coords
 
 
 def graph_gly_donor(
@@ -151,10 +11,10 @@ def graph_gly_donor(
         x_offset: float = 0.0,
         y_offset: float = 0.0,
         z_offset: float = 0.0,
-        rotations: Optional[List[Tuple[float, _AXIS_OPTIONS]]] = None,
+        rotations: Optional[List[Tuple[float, AXIS_OPTIONS]]] = None,
         exclude: Optional[List[str]] = None
 ):
-    coords = _modify_coords(_apply_rotations([
+    coords = modify_coords(apply_rotations([
         ["ATOM", start_idx, "A", res, "", "GLY", "CA", f"A{res:04d}-GLY:CA", "C", "",
          -1.07 -math.cos(math.radians(180 - 109.5)) * 1.47, +math.sin(math.radians(180 - 109.5)) * 1.47, 0, start_idx],
         ["ATOM", start_idx + 1, "A", res, "", "GLY", "N", f"A{res:04d}-GLY:N", "N", "",
@@ -181,7 +41,7 @@ def graph_gly_donor(
     }
     pebble_bars = []
 
-    return _format(
+    return format_coords(
         coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
         pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
         exclude=exclude
@@ -194,10 +54,10 @@ def graph_gly_acceptor(
         x_offset: float = 0.0,
         y_offset: float = 0.0,
         z_offset: float = 0.0,
-        rotations: Optional[List[Tuple[float, _AXIS_OPTIONS]]] = None,
+        rotations: Optional[List[Tuple[float, AXIS_OPTIONS]]] = None,
         exclude: Optional[List[str]] = None
 ):
-    coords = _modify_coords(_apply_rotations([
+    coords = modify_coords(apply_rotations([
         ["ATOM", start_idx, "A", res, "", "GLY", "CA", f"A{res:04d}-GLY:CA", "C", "",
          1.27 + (0.5 * 1.54), +math.sin(math.radians(60)) * 1.54, 0, start_idx],
         ["ATOM", start_idx + 1, "A", res, "", "GLY", "C", f"A{res:04d}-GLY:C", "C", "",
@@ -227,7 +87,7 @@ def graph_gly_acceptor(
         (f"A{res:04d}-GLY:O", f"A{res:04d}-GLY:C", 1)
     ]
 
-    return _format(
+    return format_coords(
         coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
         pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
         exclude=exclude
@@ -289,7 +149,7 @@ def graph_asn_donor(
         (f"A{res:04d}-ASN:OD1", f"A{res:04d}-ASN:CG", 1)
     ]
 
-    return _format(
+    return format_coords(
         coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
         pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
         exclude=exclude
@@ -355,7 +215,7 @@ def graph_arg_donor(
         (f"A{res:04d}-ARG:NH2", f"A{res:04d}-ARG:NH1", 2)
     ]
 
-    return _format(
+    return format_coords(
         coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
         pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
         exclude=exclude
@@ -368,10 +228,10 @@ def graph_glu_acceptor(
         x_offset: float = 0.0,
         y_offset: float = 0.0,
         z_offset: float = 0.0,
-        rotations: Optional[List[Tuple[float, _AXIS_OPTIONS]]] = None,
+        rotations: Optional[List[Tuple[float, AXIS_OPTIONS]]] = None,
         exclude: Optional[List[str]] = None
 ):
-    coords = _modify_coords(_apply_rotations([
+    coords = modify_coords(apply_rotations([
         ["ATOM", start_idx, "A", res, "", "GLU", "OE1", f"A{res:04d}-GLU:OE1", "O", "",
          0, +math.sin(math.radians(60)) * 1.355, 0, start_idx],
         ["ATOM", start_idx + 1, "A", res, "", "GLU", "OE2", f"A{res:04d}-GLU:OE2", "O", "1-",
@@ -401,7 +261,7 @@ def graph_glu_acceptor(
         (f"A{res:04d}-GLU:OE2", f"A{res:04d}-GLU:OE1", 2)
     ]
 
-    return _format(
+    return format_coords(
         coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
         pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
         exclude=exclude
@@ -443,7 +303,7 @@ def graph_ser_acceptor(
     }
     pebble_bars = []
 
-    return _format(
+    return format_coords(
         coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
         pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
         exclude=exclude
@@ -496,7 +356,7 @@ def graph_lys_donor(
     }
     pebble_bars = []
 
-    return _format(
+    return format_coords(
         coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
         pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
         exclude=exclude
@@ -509,10 +369,10 @@ def graph_cyh_acceptor(
         x_offset: float = 0.0,
         y_offset: float = 0.0,
         z_offset: float = 0.0,
-        rotations: Optional[List[Tuple[float, _AXIS_OPTIONS]]] = None,
+        rotations: Optional[List[Tuple[float, AXIS_OPTIONS]]] = None,
         exclude: Optional[List[str]] = None
 ):
-    coords = _modify_coords(_apply_rotations([
+    coords = modify_coords(apply_rotations([
         ["ATOM", start_idx, "A", res, "", "CYH", "SG", f"A{res:04d}-CYH:SG", "S", "",
          0, 0, 0, start_idx],
         ["ATOM", start_idx + 1, "A", res, "", "CYH", "HG", f"A{res:04d}-CYH:HG", "H", "",
@@ -541,7 +401,7 @@ def graph_cyh_acceptor(
     }
     pebble_bars = []
 
-    return _format(
+    return format_coords(
         coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
         pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
         exclude=exclude
@@ -554,10 +414,10 @@ def graph_css(
         x_offset: float = 0.0,
         y_offset: float = 0.0,
         z_offset: float = 0.0,
-        rotations: Optional[List[Tuple[float, _AXIS_OPTIONS]]] = None,
+        rotations: Optional[List[Tuple[float, AXIS_OPTIONS]]] = None,
         exclude: Optional[List[str]] = None
 ):
-    coords = _modify_coords(_apply_rotations([
+    coords = modify_coords(apply_rotations([
         ["ATOM", start_idx, "A", res, "", "CSS", "SG", f"A{res:04d}-CSS:SG", "S", "",
          0, 0, 0, start_idx],
         ["ATOM", start_idx + 1, "A", res, "", "CSS", "CB", f"A{res:04d}-CSS:CB", "C", "",
@@ -580,7 +440,7 @@ def graph_css(
     }
     pebble_bars = []
 
-    return _format(
+    return format_coords(
         coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
         pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
         exclude=exclude
@@ -593,12 +453,12 @@ def graph_phe_aromatic_xy_plane(
         x_offset: float = 0.0,
         y_offset: float = 0.0,
         z_offset: float = 0.0,
-        rotations: Optional[List[Tuple[float, _AXIS_OPTIONS]]] = None,
+        rotations: Optional[List[Tuple[float, AXIS_OPTIONS]]] = None,
         exclude: Optional[List[str]] = None
 ):
     c_dist = 1.39
     h_dist = c_dist + 1.14
-    coords = _modify_coords(_apply_rotations([
+    coords = modify_coords(apply_rotations([
         ["ATOM", start_idx, "A", res, "", "PHE", "CG", f"A{res:04d}-PHE:CG", "C", "",
          c_dist, 0, 0, start_idx],
         ["ATOM", start_idx + 1, "A", res, "", "PHE", "CD1", f"A{res:04d}-PHE:CD1", "C", "",
@@ -671,7 +531,7 @@ def graph_phe_aromatic_xy_plane(
         (f"A{res:04d}-PHE:CZ", f"A{res:04d}-PHE:CE2", 5)
     ]
 
-    return _format(
+    return format_coords(
         coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
         pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
         exclude=exclude
@@ -684,7 +544,7 @@ def graph_hie_imidazole_ring(
         x_offset: float = 0.0,
         y_offset: float = 0.0,
         z_offset: float = 0.0,
-        rotations: Optional[List[Tuple[float, _AXIS_OPTIONS]]] = None,
+        rotations: Optional[List[Tuple[float, AXIS_OPTIONS]]] = None,
         exclude: Optional[List[str]] = None
 ):
     dist_cg_nd1 = 1.382
@@ -727,7 +587,7 @@ def graph_hie_imidazole_ring(
     he1_x = ce1_x + math.cos(math.radians(adjusted_angle_he1)) * 1.14
     he1_y = ce1_y + math.sin(math.radians(adjusted_angle_he1)) * 1.14
 
-    coords = _modify_coords(_apply_rotations([
+    coords = modify_coords(apply_rotations([
         ["ATOM", start_idx, "A", res, "", "HIE", "CG", f"A{res:04d}-HIE:CG", "C", "",
          cg_x, cg_y, 0, start_idx],
         ["ATOM", start_idx + 1, "A", res, "", "HIE", "ND1", f"A{res:04d}-HIE:ND1", "N", "",
@@ -789,7 +649,7 @@ def graph_hie_imidazole_ring(
         (f"A{res:04d}-HIE:CE1", f"A{res:04d}-HIE:NE2", 5)
     ]
 
-    return _format(
+    return format_coords(
         coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
         pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
         exclude=exclude
@@ -801,11 +661,11 @@ def graph_methane(
         x_offset: float = 0.0,
         y_offset: float = 0.0,
         z_offset: float = 0.0,
-        rotations: Optional[List[Tuple[float, _AXIS_OPTIONS]]] = None,
+        rotations: Optional[List[Tuple[float, AXIS_OPTIONS]]] = None,
         exclude: Optional[List[str]] = None
 ):
     d = 0.658  # d = 0.658179 => sqrt(3 * d^2) == 1.14, however, PDB only allows 3 digits
-    coords = _modify_coords(_apply_rotations([
+    coords = modify_coords(apply_rotations([
         ["HETATM", start_idx, "A", res, "", "CH4", "C", f"A{res:04d}-CH4:C", "C", "",
          0, 0, 0, start_idx],
         ["HETATM", start_idx + 1, "A", res, "", "CH4", "H1", f"A{res:04d}-CH4:H1", "H", "",
@@ -848,7 +708,943 @@ def graph_methane(
         (f"A{res:04d}-CH4:C", f"A{res:04d}-CH4:H4", 5)
     ]
 
-    return _format(
+    return format_coords(
+        coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
+        pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
+        exclude=exclude
+    )
+
+def graph_adenine(
+        start_idx: int = 1,
+        res: int = 1,
+        x_offset: float = 0.0,
+        y_offset: float = 0.0,
+        z_offset: float = 0.0,
+        is_dna: bool = True,
+        rotations: Optional[List[Tuple[float, AXIS_OPTIONS]]] = None,
+        exclude: Optional[List[str]] = None
+):
+    resi = ("DA" if is_dna else "A").rjust(3, " ")
+    coords = modify_coords(apply_rotations([
+        ["ATOM", start_idx, "A", res, "", resi, "P", f"A{res:04d}-{resi}:P", "P", "",
+         1.861, -8.579, 1.742, start_idx],
+        ["ATOM", start_idx + 1, "A", res, "", resi, "OP1", f"A{res:04d}-{resi}:OP1", "O", "",
+         1.588, -9.922, 2.372, start_idx + 1],
+        ["ATOM", start_idx + 2, "A", res, "", resi, "OP2", f"A{res:04d}-{resi}:OP2", "O", "",
+         3.084, -8.504, 0.917, start_idx + 2],
+        ["ATOM", start_idx + 3, "A", res, "", resi, "O5'", f"A{res:04d}-{resi}:O5'", "O", "",
+         0.435, -8.093, 1.219, start_idx + 3],
+        ["ATOM", start_idx + 4, "A", res, "", resi, "C5'", f"A{res:04d}-{resi}:C5'", "C", "",
+         -0.730, -8.036, 2.041, start_idx + 4],
+        ["ATOM", start_idx + 5, "A", res, "", resi, "C4'", f"A{res:04d}-{resi}:C4'", "C", "",
+         -1.602, -6.896, 1.546, start_idx + 5],
+        ["ATOM", start_idx + 6, "A", res, "", resi, "O4'", f"A{res:04d}-{resi}:O4'", "O", "",
+         -0.904, -5.683, 1.553, start_idx + 6],
+        ["ATOM", start_idx + 7, "A", res, "", resi, "C3'", f"A{res:04d}-{resi}:C3'", "C", "",
+         -2.233, -7.042, 0.172, start_idx + 7],
+        ["ATOM", start_idx + 8, "A", res, "", resi, "O3'", f"A{res:04d}-{resi}:O3'", "O", "",
+         -3.658, -7.083, 0.244, start_idx + 8],
+        ["ATOM", start_idx + 9, "A", res, "", resi, "C2'", f"A{res:04d}-{resi}:C2'", "C", "",
+         -1.653, -5.866, -0.623, start_idx + 9],
+        ["ATOM", start_idx + 10, "A", res, "", resi, "C1'", f"A{res:04d}-{resi}:C1'", "C", "",
+         -1.281, -4.864, 0.400, start_idx + 10],
+        ["ATOM", start_idx + 11, "A", res, "", resi, "N9", f"A{res:04d}-{resi}:N9", "N", "",
+         -0.163, -3.934, 0.161, start_idx + 11],
+        ["ATOM", start_idx + 12, "A", res, "", resi, "C8", f"A{res:04d}-{resi}:C8", "C", "",
+         1.183, -4.183, 0.043, start_idx + 12],
+        ["ATOM", start_idx + 13, "A", res, "", resi, "N7", f"A{res:04d}-{resi}:N7", "N", "",
+         1.919, -3.104, -0.094, start_idx + 13],
+        ["ATOM", start_idx + 14, "A", res, "", resi, "C5", f"A{res:04d}-{resi}:C5", "C", "",
+         0.997, -2.064, -0.032, start_idx + 14],
+        ["ATOM", start_idx + 15, "A", res, "", resi, "C6", f"A{res:04d}-{resi}:C6", "C", "",
+         1.155, -0.652, -0.114, start_idx + 15],
+        ["ATOM", start_idx + 16, "A", res, "", resi, "N6", f"A{res:04d}-{resi}:N6", "N", "",
+         2.306, -0.014, -0.284, start_idx + 16],
+        ["ATOM", start_idx + 17, "A", res, "", resi, "N1", f"A{res:04d}-{resi}:N1", "N", "",
+         0.000, 0.082, 0.000, start_idx + 17],
+        ["ATOM", start_idx + 18, "A", res, "", resi, "C2", f"A{res:04d}-{resi}:C2", "C", "",
+         -1.203, -0.539, 0.168, start_idx + 18],
+        ["ATOM", start_idx + 19, "A", res, "", resi, "N3", f"A{res:04d}-{resi}:N3", "N", "",
+         -1.421, -1.847, 0.240, start_idx + 19],
+        ["ATOM", start_idx + 20, "A", res, "", resi, "C4", f"A{res:04d}-{resi}:C4", "C", "",
+         -0.278, -2.554, 0.133, start_idx + 20],
+        ["ATOM", start_idx + 21, "A", res, "", resi, "H5'", f"A{res:04d}-{resi}:H5'", "H", "",
+         -0.483, -7.896, 2.969, start_idx + 21],
+        ["ATOM", start_idx + 22, "A", res, "", resi, "H5''", f"A{res:04d}-{resi}:H5''", "H", "",
+         -1.214, -8.876, 2.000, start_idx + 22],
+        ["ATOM", start_idx + 23, "A", res, "", resi, "H4'", f"A{res:04d}-{resi}:H4'", "H", "",
+         -2.333, -6.917, 2.184, start_idx + 23],
+        ["ATOM", start_idx + 24, "A", res, "", resi, "H3'", f"A{res:04d}-{resi}:H3'", "H", "",
+         -2.027, -7.882, -0.267, start_idx + 24],
+        ["ATOM", start_idx + 25, "A", res, "", resi, "H2'", f"A{res:04d}-{resi}:H2'", "H", "",
+         -0.882, -6.140, -1.144, start_idx + 25],
+        ["ATOM", start_idx + 26, "A", res, "", resi, "H1'", f"A{res:04d}-{resi}:H1'", "H", "",
+         -2.040, -4.263, 0.465, start_idx + 26],
+        ["ATOM", start_idx + 27, "A", res, "", resi, "H8", f"A{res:04d}-{resi}:H8", "H", "",
+         1.542, -5.040, 0.060, start_idx + 27],
+        ["ATOM", start_idx + 28, "A", res, "", resi, "H61", f"A{res:04d}-{resi}:H61", "H", "",
+         2.320, 0.845, -0.324, start_idx + 28],
+        ["ATOM", start_idx + 29, "A", res, "", resi, "H62", f"A{res:04d}-{resi}:H62", "H", "",
+         3.038, -0.460, -0.355, start_idx + 29],
+        ["ATOM", start_idx + 30, "A", res, "", resi, "H2", f"A{res:04d}-{resi}:H2", "H", "",
+         -1.950, 0.012, 0.240, start_idx + 30],
+    ] + ([
+        ["ATOM", start_idx + 31, "A", res, "", resi, "H2''", f"A{res:04d}-{resi}:H2''", "H", "",
+         -2.305, -5.508, -1.246, start_idx + 31],
+    ] if is_dna else [
+        ["ATOM", start_idx + 31, "A", res, "", resi, "O2'", f"A{res:04d}-{resi}:O2'", "O", "",
+         0, 0, 0, start_idx + 31],
+        ["ATOM", start_idx + 32, "A", res, "", resi, "HO2'", f"A{res:04d}-{resi}:HO2'", "H", "",
+         0, 0, 0, start_idx + 32],
+    ]), rotations), x_offset, y_offset, z_offset)
+    hydrogen_mapping = [
+        (f"A{res:04d}-{resi}:H8", f"A{res:04d}-{resi}:C8", 0.930),
+        (f"A{res:04d}-{resi}:H61", f"A{res:04d}-{resi}:C6", 1.909),
+        (f"A{res:04d}-{resi}:H62", f"A{res:04d}-{resi}:C6", 1.908),
+        (f"A{res:04d}-{resi}:H2", f"A{res:04d}-{resi}:C2", 0.930),
+        # Backbone
+        (f"A{res:04d}-{resi}:H5'", f"A{res:04d}-{resi}:C5'", 0.970),
+        (f"A{res:04d}-{resi}:H5''", f"A{res:04d}-{resi}:C5'", 0.970),
+        (f"A{res:04d}-{resi}:H4'", f"A{res:04d}-{resi}:C4'", 0.970),
+        (f"A{res:04d}-{resi}:H3'", f"A{res:04d}-{resi}:C3'", 0.970),
+        (f"A{res:04d}-{resi}:H2'", f"A{res:04d}-{resi}:C2'", 0.970),
+        (f"A{res:04d}-{resi}:H1'", f"A{res:04d}-{resi}:C1'", 0.970),
+    ] + ([
+        (f"A{res:04d}-{resi}:H2''", f"A{res:04d}-{resi}:C2'", 0.970),
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:HO2'", f"A{res:04d}-{resi}:O2'", 1.04),
+    ])
+    covalent_edges = [
+        (f"A{res:04d}-{resi}:OP1", f"A{res:04d}-{resi}:P",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.508, "base": True}),
+        (f"A{res:04d}-{resi}:OP2", f"A{res:04d}-{resi}:P",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.477, "base": True}),
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:O5'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.595, "base": True}),
+        (f"A{res:04d}-{resi}:O5'", f"A{res:04d}-{resi}:C5'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.427, "base": True}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:H5'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.970, "base": True}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:H5''",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.970, "base": True}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:C4'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.519, "base": True}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:H4'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.970, "base": True}),
+        (f"A{res:04d}-{resi}:O4'", f"A{res:04d}-{resi}:C4'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.400, "base": True}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:O3'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 2.441, "base": True}),
+        (f"A{res:04d}-{resi}:O3'", f"A{res:04d}-{resi}:C3'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.427, "base": True}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:H3'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.970, "base": True}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:C2'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.534, "base": True}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:H2'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.970, "base": True}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:C1'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.479, "base": True}),
+        (f"A{res:04d}-{resi}:O4'", f"A{res:04d}-{resi}:C1'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.464, "base": True}),
+        (f"A{res:04d}-{resi}:C1'", f"A{res:04d}-{resi}:H1'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.970, "base": True}),
+        (f"A{res:04d}-{resi}:N1", f"A{res:04d}-{resi}:C2",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.364, "base": True}),
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:N3",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.328, "base": True}),
+        (f"A{res:04d}-{resi}:N3", f"A{res:04d}-{resi}:C4",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.348, "base": True}),
+        (f"A{res:04d}-{resi}:N6", f"A{res:04d}-{resi}:C6",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.327, "base": True}),
+        (f"A{res:04d}-{resi}:C6", f"A{res:04d}-{resi}:C5",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.424, "base": True}),
+        (f"A{res:04d}-{resi}:C5", f"A{res:04d}-{resi}:C4",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.376, "base": True}),
+        (f"A{res:04d}-{resi}:C4", f"A{res:04d}-{resi}:N9",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.385, "base": True}),
+        (f"A{res:04d}-{resi}:N7", f"A{res:04d}-{resi}:C8",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.312, "base": True}),
+        (f"A{res:04d}-{resi}:C8", f"A{res:04d}-{resi}:N9",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.374, "base": True}),
+        (f"A{res:04d}-{resi}:N9", f"A{res:04d}-{resi}:C1'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.474, "base": True}),
+        (f"A{res:04d}-{resi}:C8", f"A{res:04d}-{resi}:H8",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.930, "base": True}),
+        (f"A{res:04d}-{resi}:C6", f"A{res:04d}-{resi}:H61",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.909, "base": True}),
+        (f"A{res:04d}-{resi}:C6", f"A{res:04d}-{resi}:H62",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.908, "base": True}),
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:H2",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.930, "base": True}),
+        (f"A{res:04d}-{resi}:C6", f"A{res:04d}-{resi}:N1",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.373, "base": True}),
+        (f"A{res:04d}-{resi}:C5", f"A{res:04d}-{resi}:N7",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.391, "base": True}),
+    ] + ([
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:H2''",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.970, "base": True}),
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:O2",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.44, "base": True}),
+        (f"A{res:04d}-{resi}:O2'", f"A{res:04d}-{resi}:HO2'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.04, "base": True}),
+    ])
+    pebble_edges = [
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:OP1", {"weight": 0}),
+        (f"A{res:04d}-{resi}:OP1", f"A{res:04d}-{resi}:P", {"weight": 5}),
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:OP2", {"weight": 0}),
+        (f"A{res:04d}-{resi}:OP2", f"A{res:04d}-{resi}:P", {"weight": 5}),
+        (f"A{res:04d}-{resi}:O5'", f"A{res:04d}-{resi}:P", {"weight": 0}),
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:O5'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:O5'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O5'", f"A{res:04d}-{resi}:C5'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:C5'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:C4'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:O4'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O4'", f"A{res:04d}-{resi}:C4'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:O3'", f"A{res:04d}-{resi}:C4'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:O3'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:O3'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O3'", f"A{res:04d}-{resi}:C3'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:C3'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:C2'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C1'", f"A{res:04d}-{resi}:C2'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:C1'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:N1", {"weight": 0}),
+        (f"A{res:04d}-{resi}:N1", f"A{res:04d}-{resi}:C2", {"weight": 5}),
+        (f"A{res:04d}-{resi}:N3", f"A{res:04d}-{resi}:C2", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:N3", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C4", f"A{res:04d}-{resi}:N3", {"weight": 0}),
+        (f"A{res:04d}-{resi}:N3", f"A{res:04d}-{resi}:C4", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C6", f"A{res:04d}-{resi}:N6", {"weight": 0}),
+        (f"A{res:04d}-{resi}:N6", f"A{res:04d}-{resi}:C6", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C5", f"A{res:04d}-{resi}:C6", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C6", f"A{res:04d}-{resi}:C5", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C4", f"A{res:04d}-{resi}:C5", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C5", f"A{res:04d}-{resi}:C4", {"weight": 5}),
+        (f"A{res:04d}-{resi}:N9", f"A{res:04d}-{resi}:C4", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C4", f"A{res:04d}-{resi}:N9", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C8", f"A{res:04d}-{resi}:N7", {"weight": 0}),
+        (f"A{res:04d}-{resi}:N7", f"A{res:04d}-{resi}:C8", {"weight": 5}),
+        (f"A{res:04d}-{resi}:N9", f"A{res:04d}-{resi}:C8", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C8", f"A{res:04d}-{resi}:N9", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C1'", f"A{res:04d}-{resi}:N9", {"weight": 0}),
+        (f"A{res:04d}-{resi}:N9", f"A{res:04d}-{resi}:C1'", {"weight": 5}),
+    ] + ([
+        # not required
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:O2'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O2'", f"A{res:04d}-{resi}:C2'", {"weight": 5}),
+    ])
+    pebble_map = {
+        f"A{res:04d}-{resi}:N1": 1,
+        # Backbone
+        f"A{res:04d}-{resi}:OP1": 1,
+        f"A{res:04d}-{resi}:OP2": 1,
+        f"A{res:04d}-{resi}:P": 1,
+        f"A{res:04d}-{resi}:O5'": 1,
+        f"A{res:04d}-{resi}:C5'": 1,
+        f"A{res:04d}-{resi}:O4'": 1,
+        f"A{res:04d}-{resi}:C4'": 1,
+        f"A{res:04d}-{resi}:C3'": 1,
+        f"A{res:04d}-{resi}:O3'": 6,
+        f"A{res:04d}-{resi}:C2'": 1,
+        f"A{res:04d}-{resi}:C1'": 1,
+    }
+    if not is_dna:
+        pebble_map = dict(**pebble_map, **{
+            f"A{res:04d}-{resi}:O2'": 1,
+        })
+    pebble_bars = [
+        # Backbone
+        (f"A{res:04d}-{resi}:OP1", f"A{res:04d}-{resi}:P", 1),
+        (f"A{res:04d}-{resi}:O4'", f"A{res:04d}-{resi}:C1'", 5),
+    ] + ([
+        # not required
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:O2'", f"A{res:04d}-{resi}:C2'", 1),
+    ])
+
+    return format_coords(
+        coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
+        pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
+        exclude=exclude
+    )
+
+def graph_cytosine(
+        start_idx: int = 1,
+        res: int = 1,
+        x_offset: float = 0.0,
+        y_offset: float = 0.0,
+        z_offset: float = 0.0,
+        is_dna: bool = True,
+        rotations: Optional[List[Tuple[float, AXIS_OPTIONS]]] = None,
+        exclude: Optional[List[str]] = None
+):
+    resi = ("DC" if is_dna else "C").rjust(3, " ")
+    coords = modify_coords(apply_rotations([
+        # Nucleotide heavy atoms
+        ["ATOM", start_idx, "A", res, "", resi, "N3", f"A{res:04d}-{resi}:N3", "N", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C2", f"A{res:04d}-{resi}:C2", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "O2", f"A{res:04d}-{resi}:O2", "O", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "N1", f"A{res:04d}-{resi}:N1", "N", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C4", f"A{res:04d}-{resi}:C4", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "N4", f"A{res:04d}-{resi}:N4", "N", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C5", f"A{res:04d}-{resi}:C5", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C6", f"A{res:04d}-{resi}:C6", "C", "",
+         0, 0, 0, start_idx],
+        # Nucleotide hydrogen atoms
+        ["ATOM", start_idx, "A", res, "", resi, "H6", f"A{res:04d}-{resi}:H6", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H5", f"A{res:04d}-{resi}:H5", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H41", f"A{res:04d}-{resi}:H41", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H42", f"A{res:04d}-{resi}:H42", "H", "",
+         0, 0, 0, start_idx],
+        # Backbone
+        ["ATOM", start_idx, "A", res, "", resi, "C1'", f"A{res:04d}-{resi}:C1'", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C2'", f"A{res:04d}-{resi}:C2'", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C3'", f"A{res:04d}-{resi}:C3'", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "O3'", f"A{res:04d}-{resi}:O3'", "O", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C4'", f"A{res:04d}-{resi}:C4'", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "O4'", f"A{res:04d}-{resi}:O4'", "O", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C5'", f"A{res:04d}-{resi}:C5'", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "O5'", f"A{res:04d}-{resi}:O5'", "O", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C4'", f"A{res:04d}-{resi}:C2'", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H1'", f"A{res:04d}-{resi}:H1'", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H3'", f"A{res:04d}-{resi}:H3'", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H4'", f"A{res:04d}-{resi}:H4'", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H5'", f"A{res:04d}-{resi}:H5'", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H5''", f"A{res:04d}-{resi}:H5''", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "P", f"A{res:04d}-{resi}:P", "P", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "OP1'", f"A{res:04d}-{resi}:OP1", "O", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "OP2", f"A{res:04d}-{resi}:OP2'", "O", "",
+         0, 0, 0, start_idx],
+    ] + ([
+        ["ATOM", start_idx, "A", res, "", resi, "H2''", f"A{res:04d}-{resi}:H2''", "H", "",
+         0, 0, 0, start_idx],
+    ] if is_dna else [
+        ["ATOM", start_idx, "A", res, "", resi, "O2'", f"A{res:04d}-{resi}:O2'", "O", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "HO2'", f"A{res:04d}-{resi}:HO2'", "H", "",
+         0, 0, 0, start_idx],
+    ]), rotations), x_offset, y_offset, z_offset)
+    hydrogen_mapping = [
+        (f"A{res:04d}-{resi}:H6", f"A{res:04d}-{resi}:C6", 1.09),
+        (f"A{res:04d}-{resi}:H5", f"A{res:04d}-{resi}:C5", 1.09),
+        (f"A{res:04d}-{resi}:H41", f"A{res:04d}-{resi}:N4", 1.07),
+        (f"A{res:04d}-{resi}:H42", f"A{res:04d}-{resi}:N4", 1.07),
+        # Backbone
+        (f"A{res:04d}-{resi}:H5'", f"A{res:04d}-{resi}:C5'", 1.14),
+        (f"A{res:04d}-{resi}:H5''", f"A{res:04d}-{resi}:C5'", 1.14),
+        (f"A{res:04d}-{resi}:H4'", f"A{res:04d}-{resi}:C4'", 1.14),
+        (f"A{res:04d}-{resi}:H3'", f"A{res:04d}-{resi}:C3'", 1.14),
+        (f"A{res:04d}-{resi}:H2'", f"A{res:04d}-{resi}:C2'", 1.14),
+        (f"A{res:04d}-{resi}:H1'", f"A{res:04d}-{resi}:C1'", 1.14),
+    ] + ([
+        (f"A{res:04d}-{resi}:H2''", f"A{res:04d}-{resi}:C2'", 1.14),
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:HO2'", f"A{res:04d}-{resi}:O2'", 1.04),
+    ])
+    covalent_edges = [
+        (f"A{res:04d}-{resi}:N1", f"A{res:04d}-{resi}:C2",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        # Backbone
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:H5''",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:H5'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:H5''",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:H4'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:H3'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:H2'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C1'", f"A{res:04d}-{resi}:H1'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C8", f"A{res:04d}-{resi}:H8",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.09, "base": True}),
+        (f"A{res:04d}-{resi}:N6", f"A{res:04d}-{resi}:H61",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.07, "base": True}),
+        (f"A{res:04d}-{resi}:N6", f"A{res:04d}-{resi}:H62",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.07, "base": True}),
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:H2",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.04, "base": True}),
+    ] + ([
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:H2''",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:O2",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.44, "base": True}),
+        (f"A{res:04d}-{resi}:O2'", f"A{res:04d}-{resi}:HO2'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.04, "base": True}),
+    ])
+    pebble_edges = [
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:N1", {"weight": 0}),
+        (f"A{res:04d}-{resi}:N1", f"A{res:04d}-{resi}:C2", {"weight": 5}),
+        # Backbone
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:OP1", {"weight": 0}),
+        (f"A{res:04d}-{resi}:OP1", f"A{res:04d}-{resi}:P", {"weight": 5}),
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:OP2", {"weight": 0}),
+        (f"A{res:04d}-{resi}:OP2", f"A{res:04d}-{resi}:P", {"weight": 5}),
+        (f"A{res:04d}-{resi}:O5'", f"A{res:04d}-{resi}:P", {"weight": 0}),
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:O5'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:O5'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O5'", f"A{res:04d}-{resi}:C5'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:C5'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:C4'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:O4'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O4'", f"A{res:04d}-{resi}:C4'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:C4'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:C3'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:O3'", f"A{res:04d}-{resi}:C3'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:O3'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:C2'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:C3'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:C1'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C1'", f"A{res:04d}-{resi}:C2'", {"weight": 5}),
+    ] + ([
+        # not required
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:O2'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O2'", f"A{res:04d}-{resi}:C2'", {"weight": 5}),
+    ])
+    pebble_map = {
+        f"A{res:04d}-{resi}:N1": 1,
+        # Backbone
+        f"A{res:04d}-{resi}:OP1": 1,
+        f"A{res:04d}-{resi}:OP2": 1,
+        f"A{res:04d}-{resi}:P": 1,
+        f"A{res:04d}-{resi}:O5'": 1,
+        f"A{res:04d}-{resi}:C5'": 1,
+        f"A{res:04d}-{resi}:O4'": 1,
+        f"A{res:04d}-{resi}:C4'": 1,
+        f"A{res:04d}-{resi}:C3'": 1,
+        f"A{res:04d}-{resi}:O3'": 6,
+        f"A{res:04d}-{resi}:C2'": 1,
+        f"A{res:04d}-{resi}:C1'": 1,
+    }
+    if not is_dna:
+        pebble_map = dict(**pebble_map, **{
+            f"A{res:04d}-{resi}:O2'": 1,
+        })
+    pebble_bars = [
+        # Backbone
+        (f"A{res:04d}-{resi}:OP1", f"A{res:04d}-{resi}:P", 1),
+        (f"A{res:04d}-{resi}:O4'", f"A{res:04d}-{resi}:C1'", 5),
+    ] + ([
+        # not required
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:O2'", f"A{res:04d}-{resi}:C2'", 1),
+    ])
+
+    return format_coords(
+        coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
+        pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
+        exclude=exclude
+    )
+
+def graph_guanine(
+        start_idx: int = 1,
+        res: int = 1,
+        x_offset: float = 0.0,
+        y_offset: float = 0.0,
+        z_offset: float = 0.0,
+        is_dna: bool = True,
+        rotations: Optional[List[Tuple[float, AXIS_OPTIONS]]] = None,
+        exclude: Optional[List[str]] = None
+):
+    resi = ("DG" if is_dna else "G").rjust(3, " ")
+    coords = modify_coords(apply_rotations([
+        ["ATOM", start_idx, "A", res, "", resi, "P", f"A{res:04d}-{resi}:P", "P", "",
+         -1.795, -8.507, 2.382, start_idx],
+        ["ATOM", start_idx + 1, "A", res, "", resi, "OP1", f"A{res:04d}-{resi}:OP1", "O", "",
+         -1.219, -9.865, 2.670, start_idx + 1],
+        ["ATOM", start_idx + 2, "A", res, "", resi, "OP2", f"A{res:04d}-{resi}:OP2", "O", "",
+         -3.213, -8.482, 1.933, start_idx + 2],
+        ["ATOM", start_idx + 3, "A", res, "", resi, "O5'", f"A{res:04d}-{resi}:O5'", "O", "",
+         -0.807, -7.765, 1.316, start_idx + 3],
+        ["ATOM", start_idx + 4, "A", res, "", resi, "C5'", f"A{res:04d}-{resi}:C5'", "C", "",
+         0.541, -8.373, 1.203, start_idx + 4],
+        ["ATOM", start_idx + 5, "A", res, "", resi, "C4'", f"A{res:04d}-{resi}:C4'", "C", "",
+         1.383, -7.286, 0.543, start_idx + 5],
+        ["ATOM", start_idx + 6, "A", res, "", resi, "O4'", f"A{res:04d}-{resi}:O4'", "O", "",
+         0.885, -6.031, 0.997, start_idx + 6],
+        ["ATOM", start_idx + 7, "A", res, "", resi, "C3'", f"A{res:04d}-{resi}:C3'", "C", "",
+         1.115, -7.262, -0.894, start_idx + 7],
+        ["ATOM", start_idx + 8, "A", res, "", resi, "O3'", f"A{res:04d}-{resi}:O3'", "O", "",
+         2.281, -7.673, -1.447, start_idx + 8],
+        ["ATOM", start_idx + 9, "A", res, "", resi, "C2'", f"A{res:04d}-{resi}:C2'", "C", "",
+         0.848, -5.864, -1.184, start_idx + 9],
+        ["ATOM", start_idx + 10, "A", res, "", resi, "C1'", f"A{res:04d}-{resi}:C1'", "C", "",
+         0.985, -5.083, -0.036, start_idx + 10],
+        ["ATOM", start_idx + 11, "A", res, "", resi, "N9", f"A{res:04d}-{resi}:N9", "N", "",
+         -0.070, -4.061, -0.119, start_idx + 11],
+        ["ATOM", start_idx + 12, "A", res, "", resi, "C8", f"A{res:04d}-{resi}:C8", "C", "",
+         -1.404, -4.229, -0.339, start_idx + 12],
+        ["ATOM", start_idx + 13, "A", res, "", resi, "N7", f"A{res:04d}-{resi}:N7", "N", "",
+         -2.071, -3.103, -0.410, start_idx + 13],
+        ["ATOM", start_idx + 14, "A", res, "", resi, "C5", f"A{res:04d}-{resi}:C5", "C", "",
+         -1.104, -2.122, -0.233, start_idx + 14],
+        ["ATOM", start_idx + 15, "A", res, "", resi, "C6", f"A{res:04d}-{resi}:C6", "C", "",
+         -1.200, -0.709, -0.197, start_idx + 15],
+        ["ATOM", start_idx + 16, "A", res, "", resi, "O6", f"A{res:04d}-{resi}:O6", "O", "",
+         -2.218, -0.005, -0.326, start_idx + 16],
+        ["ATOM", start_idx + 17, "A", res, "", resi, "N1", f"A{res:04d}-{resi}:N1", "N", "",
+         0.000, -0.064, 0.000, start_idx + 17],
+        ["ATOM", start_idx + 18, "A", res, "", resi, "C2", f"A{res:04d}-{resi}:C2", "C", "",
+         1.168, -0.757, 0.154, start_idx + 18],
+        ["ATOM", start_idx + 19, "A", res, "", resi, "N2", f"A{res:04d}-{resi}:N2", "N", "",
+         2.252, 0.005, 0.331, start_idx + 19],
+        ["ATOM", start_idx + 20, "A", res, "", resi, "N3", f"A{res:04d}-{resi}:N3", "N", "",
+         1.320, -2.081, 0.139, start_idx + 20],
+        ["ATOM", start_idx + 21, "A", res, "", resi, "C4", f"A{res:04d}-{resi}:C4", "C", "",
+         0.130, -2.698, -0.060, start_idx + 21],
+        ["ATOM", start_idx + 22, "A", res, "", resi, "H5'", f"A{res:04d}-{resi}:H5'", "H", "",
+         0.894, -8.617, 2.072, start_idx + 22],
+        ["ATOM", start_idx + 23, "A", res, "", resi, "H5''", f"A{res:04d}-{resi}:H5''", "H", "",
+         0.522, -9.181, 0.667, start_idx + 23],
+        ["ATOM", start_idx + 24, "A", res, "", resi, "H4'", f"A{res:04d}-{resi}:H4'", "H", "",
+         2.319, -7.445, 0.742, start_idx + 24],
+        ["ATOM", start_idx + 25, "A", res, "", resi, "H3'", f"A{res:04d}-{resi}:H3'", "H", "",
+         0.382, -7.811, -1.213, start_idx + 25],
+        ["ATOM", start_idx + 26, "A", res, "", resi, "H2'", f"A{res:04d}-{resi}:H2'", "H", "",
+         -0.050, -5.769, -1.539, start_idx + 26],
+        ["ATOM", start_idx + 27, "A", res, "", resi, "HO3'", f"A{res:04d}-{resi}:HO3'", "H", "",
+         2.248, -7.567, -2.280, start_idx + 27],
+        ["ATOM", start_idx + 28, "A", res, "", resi, "H1'", f"A{res:04d}-{resi}:H1'", "H", "",
+         1.805, -4.584, 0.099, start_idx + 28],
+        ["ATOM", start_idx + 29, "A", res, "", resi, "H8", f"A{res:04d}-{resi}:H8", "H", "",
+         -1.804, -5.064, -0.430, start_idx + 29],
+        ["ATOM", start_idx + 30, "A", res, "", resi, "H1", f"A{res:04d}-{resi}:H1", "H", "",
+         0.015, 0.796, 0.026, start_idx + 30],
+        ["ATOM", start_idx + 31, "A", res, "", resi, "H21", f"A{res:04d}-{resi}:H21", "H", "",
+         3.023, -0.361, 0.435, start_idx + 31],
+        ["ATOM", start_idx + 32, "A", res, "", resi, "H22", f"A{res:04d}-{resi}:H22", "H", "",
+         2.178, 0.862, 0.341, start_idx + 32],
+    ] + ([
+        ["ATOM", start_idx + 33, "A", res, "", resi, "H2''", f"A{res:04d}-{resi}:H2''", "H", "",
+         1.459, -5.550, -1.869, start_idx + 33],
+    ] if is_dna else [
+        ["ATOM", start_idx + 33, "A", res, "", resi, "O2'", f"A{res:04d}-{resi}:O2'", "O", "",
+         0, 0, 0, start_idx + 33],
+        ["ATOM", start_idx + 34, "A", res, "", resi, "HO2'", f"A{res:04d}-{resi}:HO2'", "H", "",
+         0, 0, 0, start_idx + 34],
+    ]), rotations), x_offset, y_offset, z_offset)
+    hydrogen_mapping = [
+        (f"A{res:04d}-{resi}:H5'", f"A{res:04d}-{resi}:C5'", 0.970),
+        (f"A{res:04d}-{resi}:H5''", f"A{res:04d}-{resi}:C5'", 0.970),
+        (f"A{res:04d}-{resi}:H4'", f"A{res:04d}-{resi}:C4'", 0.970),
+        (f"A{res:04d}-{resi}:H3'", f"A{res:04d}-{resi}:C3'", 0.971),
+        (f"A{res:04d}-{resi}:H2'", f"A{res:04d}-{resi}:C2'", 0.970),
+        (f"A{res:04d}-{resi}:H1'", f"A{res:04d}-{resi}:C1'", 0.970),
+        (f"A{res:04d}-{resi}:H8", f"A{res:04d}-{resi}:C8", 0.930),
+        (f"A{res:04d}-{resi}:H21", f"A{res:04d}-{resi}:N2", 0.860),
+        (f"A{res:04d}-{resi}:H22", f"A{res:04d}-{resi}:N2", 0.860),
+        (f"A{res:04d}-{resi}:H1", f"A{res:04d}-{resi}:N1", 0.860),
+    ] + ([
+        (f"A{res:04d}-{resi}:H2''", f"A{res:04d}-{resi}:C2'", 0.970),
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:HO2'", f"A{res:04d}-{resi}:O2'", 1.04),
+    ])
+    covalent_edges = [
+        (f"A{res:04d}-{resi}:OP1", f"A{res:04d}-{resi}:P",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.503, "base": True}),
+        (f"A{res:04d}-{resi}:OP2", f"A{res:04d}-{resi}:P",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.488, "base": True}),
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:O5'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.632, "base": True}),
+        (f"A{res:04d}-{resi}:O5'", f"A{res:04d}-{resi}:C5'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.483, "base": True}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:H5'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.970, "base": True}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:H5''",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.970, "base": True}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:C4'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.525, "base": True}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:H4'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.970, "base": True}),
+        (f"A{res:04d}-{resi}:O4'", f"A{res:04d}-{resi}:C4'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.425, "base": True}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:O3'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 2.217, "base": True}),
+        (f"A{res:04d}-{resi}:O3'", f"A{res:04d}-{resi}:C3'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.354, "base": True}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:H3'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.971, "base": True}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:C2'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.453, "base": True}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:H2'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.970, "base": True}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:C1'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.396, "base": True}),
+        (f"A{res:04d}-{resi}:O4'", f"A{res:04d}-{resi}:C1'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.406, "base": True}),
+        (f"A{res:04d}-{resi}:C1'", f"A{res:04d}-{resi}:H1'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.970, "base": True}),
+        (f"A{res:04d}-{resi}:N1", f"A{res:04d}-{resi}:C2",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.367, "base": True}),
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:N3",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.333, "base": True}),
+        (f"A{res:04d}-{resi}:N2", f"A{res:04d}-{resi}:C2",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.337, "base": True}),
+        (f"A{res:04d}-{resi}:N3", f"A{res:04d}-{resi}:C4",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.355, "base": True}),
+        (f"A{res:04d}-{resi}:O6", f"A{res:04d}-{resi}:C6",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.244, "base": True}),
+        (f"A{res:04d}-{resi}:C6", f"A{res:04d}-{resi}:C5",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.417, "base": True}),
+        (f"A{res:04d}-{resi}:C5", f"A{res:04d}-{resi}:C4",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.373, "base": True}),
+        (f"A{res:04d}-{resi}:C4", f"A{res:04d}-{resi}:N9",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.379, "base": True}),
+        (f"A{res:04d}-{resi}:N7", f"A{res:04d}-{resi}:C8",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.311, "base": True}),
+        (f"A{res:04d}-{resi}:C8", f"A{res:04d}-{resi}:N9",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.362, "base": True}),
+        (f"A{res:04d}-{resi}:N9", f"A{res:04d}-{resi}:C1'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.471, "base": True}),
+        (f"A{res:04d}-{resi}:C8", f"A{res:04d}-{resi}:H8",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.930, "base": True}),
+        (f"A{res:04d}-{resi}:N2", f"A{res:04d}-{resi}:H21",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.860, "base": True}),
+        (f"A{res:04d}-{resi}:N2", f"A{res:04d}-{resi}:H22",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.860, "base": True}),
+        (f"A{res:04d}-{resi}:N2", f"A{res:04d}-{resi}:C2",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.337, "base": True}),
+        (f"A{res:04d}-{resi}:N1", f"A{res:04d}-{resi}:H1",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.860, "base": True}),
+        (f"A{res:04d}-{resi}:C6", f"A{res:04d}-{resi}:N1",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.376, "base": True}),
+        (f"A{res:04d}-{resi}:C5", f"A{res:04d}-{resi}:N7",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.389, "base": True}),
+    ] + ([
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:H2''",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 0.970, "base": True}),
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:O2",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.44, "base": True}),
+        (f"A{res:04d}-{resi}:O2'", f"A{res:04d}-{resi}:HO2'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.04, "base": True}),
+    ])
+    pebble_edges = [
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:OP1", {"weight": 0}),
+        (f"A{res:04d}-{resi}:OP1", f"A{res:04d}-{resi}:P", {"weight": 5}),
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:OP2", {"weight": 0}),
+        (f"A{res:04d}-{resi}:OP2", f"A{res:04d}-{resi}:P", {"weight": 5}),
+        (f"A{res:04d}-{resi}:O5'", f"A{res:04d}-{resi}:P", {"weight": 0}),
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:O5'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:O5'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O5'", f"A{res:04d}-{resi}:C5'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:C5'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:C4'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:O4'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O4'", f"A{res:04d}-{resi}:C4'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:O3'", f"A{res:04d}-{resi}:C4'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:O3'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:O3'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O3'", f"A{res:04d}-{resi}:C3'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:C3'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:C2'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C1'", f"A{res:04d}-{resi}:C2'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:C1'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:N1", {"weight": 0}),
+        (f"A{res:04d}-{resi}:N1", f"A{res:04d}-{resi}:C2", {"weight": 5}),
+        (f"A{res:04d}-{resi}:N3", f"A{res:04d}-{resi}:C2", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:N3", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:N2", {"weight": 0}),
+        (f"A{res:04d}-{resi}:N2", f"A{res:04d}-{resi}:C2", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C4", f"A{res:04d}-{resi}:N3", {"weight": 0}),
+        (f"A{res:04d}-{resi}:N3", f"A{res:04d}-{resi}:C4", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C6", f"A{res:04d}-{resi}:O6", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O6", f"A{res:04d}-{resi}:C6", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C5", f"A{res:04d}-{resi}:C6", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C6", f"A{res:04d}-{resi}:C5", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C4", f"A{res:04d}-{resi}:C5", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C5", f"A{res:04d}-{resi}:C4", {"weight": 5}),
+        (f"A{res:04d}-{resi}:N9", f"A{res:04d}-{resi}:C4", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C4", f"A{res:04d}-{resi}:N9", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C8", f"A{res:04d}-{resi}:N7", {"weight": 0}),
+        (f"A{res:04d}-{resi}:N7", f"A{res:04d}-{resi}:C8", {"weight": 5}),
+        (f"A{res:04d}-{resi}:N9", f"A{res:04d}-{resi}:C8", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C8", f"A{res:04d}-{resi}:N9", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C1'", f"A{res:04d}-{resi}:N9", {"weight": 0}),
+        (f"A{res:04d}-{resi}:N9", f"A{res:04d}-{resi}:C1'", {"weight": 5}),
+    ] + ([
+        # not required
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:O2'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O2'", f"A{res:04d}-{resi}:C2'", {"weight": 5}),
+    ])
+    pebble_map = {
+        f"A{res:04d}-{resi}:N1": 1,
+        # Backbone
+        f"A{res:04d}-{resi}:OP1": 1,
+        f"A{res:04d}-{resi}:OP2": 1,
+        f"A{res:04d}-{resi}:P": 1,
+        f"A{res:04d}-{resi}:O5'": 1,
+        f"A{res:04d}-{resi}:C5'": 1,
+        f"A{res:04d}-{resi}:O4'": 1,
+        f"A{res:04d}-{resi}:C4'": 1,
+        f"A{res:04d}-{resi}:C3'": 1,
+        f"A{res:04d}-{resi}:O3'": 6,
+        f"A{res:04d}-{resi}:C2'": 1,
+        f"A{res:04d}-{resi}:C1'": 1,
+    }
+    if not is_dna:
+        pebble_map = dict(**pebble_map, **{
+            f"A{res:04d}-{resi}:O2'": 1,
+        })
+    pebble_bars = [
+        # Backbone
+        (f"A{res:04d}-{resi}:OP1", f"A{res:04d}-{resi}:P", 1),
+        (f"A{res:04d}-{resi}:O4'", f"A{res:04d}-{resi}:C1'", 5),
+    ] + ([
+        # not required
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:O2'", f"A{res:04d}-{resi}:C2'", 1),
+    ])
+
+    return format_coords(
+        coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
+        pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
+        exclude=exclude
+    )
+
+def graph_dna_thymine(
+        start_idx: int = 1,
+        res: int = 1,
+        x_offset: float = 0.0,
+        y_offset: float = 0.0,
+        z_offset: float = 0.0,
+        is_dna: bool = True,
+        rotations: Optional[List[Tuple[float, AXIS_OPTIONS]]] = None,
+        exclude: Optional[List[str]] = None
+):
+    resi = ("DT" if is_dna else "U").rjust(3, " ")
+    coords = modify_coords(apply_rotations([
+        # Nucleotide heavy atoms
+        ["ATOM", start_idx, "A", res, "", resi, "N3", f"A{res:04d}-{resi}:N3", "N", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C2", f"A{res:04d}-{resi}:C2", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "O2", f"A{res:04d}-{resi}:O2", "O", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "N1", f"A{res:04d}-{resi}:N1", "N", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C4", f"A{res:04d}-{resi}:C4", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "O4", f"A{res:04d}-{resi}:O4", "O", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C5", f"A{res:04d}-{resi}:C5", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C6", f"A{res:04d}-{resi}:C6", "C", "",
+         0, 0, 0, start_idx],
+        # Nucleotide hydrogen atoms
+        ["ATOM", start_idx, "A", res, "", resi, "H6", f"A{res:04d}-{resi}:H6", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H3", f"A{res:04d}-{resi}:H3", "H", "",
+         0, 0, 0, start_idx],
+        # Backbone
+        ["ATOM", start_idx, "A", res, "", resi, "C1'", f"A{res:04d}-{resi}:C1'", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C2'", f"A{res:04d}-{resi}:C2'", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C3'", f"A{res:04d}-{resi}:C3'", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "O3'", f"A{res:04d}-{resi}:O3'", "O", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C4'", f"A{res:04d}-{resi}:C4'", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "O4'", f"A{res:04d}-{resi}:O4'", "O", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C5'", f"A{res:04d}-{resi}:C5'", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "O5'", f"A{res:04d}-{resi}:O5'", "O", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C4'", f"A{res:04d}-{resi}:C2'", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H1'", f"A{res:04d}-{resi}:H1'", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H3'", f"A{res:04d}-{resi}:H3'", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H4'", f"A{res:04d}-{resi}:H4'", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H5'", f"A{res:04d}-{resi}:H5'", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H5''", f"A{res:04d}-{resi}:H5''", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "P", f"A{res:04d}-{resi}:P", "P", "",
+         1.861, -8.579, 1.742, start_idx],
+        ["ATOM", start_idx + 1, "A", res, "", resi, "OP1", f"A{res:04d}-{resi}:OP1", "O", "",
+         1.588, -9.922, 2.372, start_idx + 1],
+        ["ATOM", start_idx + 2, "A", res, "", resi, "OP2", f"A{res:04d}-{resi}:OP2", "O", "",
+         3.084, -8.504, 0.917, start_idx + 2],
+    ] + ([
+        ["ATOM", start_idx, "A", res, "", resi, "H2''", f"A{res:04d}-{resi}:H2''", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "C7", f"A{res:04d}-{resi}:C7", "C", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H71", f"A{res:04d}-{resi}:H71", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H72", f"A{res:04d}-{resi}:H72", "H", "",
+         0, 0, 0, start_idx],
+        ["ATOM", start_idx, "A", res, "", resi, "H73", f"A{res:04d}-{resi}:H73", "H", "",
+         0, 0, 0, start_idx],
+    ] if is_dna else [
+        ["ATOM", start_idx, "A", res, "", resi, "H5", f"A{res:04d}-{resi}:H5", "H", "",
+         0, 0, 0, start_idx],
+    ]), rotations), x_offset, y_offset, z_offset)
+    hydrogen_mapping = [
+        (f"A{res:04d}-{resi}:H6", f"A{res:04d}-{resi}:C6", 1.09),
+        (f"A{res:04d}-{resi}:H3", f"A{res:04d}-{resi}:N3", 1.07),
+        # Backbone
+        (f"A{res:04d}-{resi}:H5'", f"A{res:04d}-{resi}:C5'", 1.14),
+        (f"A{res:04d}-{resi}:H5''", f"A{res:04d}-{resi}:C5'", 1.14),
+        (f"A{res:04d}-{resi}:H4'", f"A{res:04d}-{resi}:C4'", 1.14),
+        (f"A{res:04d}-{resi}:H3'", f"A{res:04d}-{resi}:C3'", 1.14),
+        (f"A{res:04d}-{resi}:H2'", f"A{res:04d}-{resi}:C2'", 1.14),
+        (f"A{res:04d}-{resi}:H1'", f"A{res:04d}-{resi}:C1'", 1.14),
+    ] + ([
+        (f"A{res:04d}-{resi}:H2''", f"A{res:04d}-{resi}:C2'", 1.14),
+        (f"A{res:04d}-{resi}:H71", f"A{res:04d}-{resi}:C7'", 1.14),
+        (f"A{res:04d}-{resi}:H72", f"A{res:04d}-{resi}:C7'", 1.14),
+        (f"A{res:04d}-{resi}:H73", f"A{res:04d}-{resi}:C7'", 1.14),
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:H5", f"A{res:04d}-{resi}:C5'", 1.09),
+        (f"A{res:04d}-{resi}:HO2'", f"A{res:04d}-{resi}:O2'", 1.04),
+    ])
+    covalent_edges = [
+        (f"A{res:04d}-{resi}:N1", f"A{res:04d}-{resi}:C2",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        # Backbone
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:H5''",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:H5'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:H5''",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:H4'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:H3'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:H2'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C1'", f"A{res:04d}-{resi}:H1'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C8", f"A{res:04d}-{resi}:H8",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.09, "base": True}),
+        (f"A{res:04d}-{resi}:N6", f"A{res:04d}-{resi}:H61",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.07, "base": True}),
+        (f"A{res:04d}-{resi}:N6", f"A{res:04d}-{resi}:H62",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.07, "base": True}),
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:H2",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.04, "base": True}),
+    ] + ([
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:H2''",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C7", f"A{res:04d}-{resi}:C5",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.44, "base": True}),
+        (f"A{res:04d}-{resi}:C7", f"A{res:04d}-{resi}:H71",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C7", f"A{res:04d}-{resi}:H72",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+        (f"A{res:04d}-{resi}:C7", f"A{res:04d}-{resi}:H73",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.14, "base": True}),
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:O2",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.44, "base": True}),
+        (f"A{res:04d}-{resi}:O2'", f"A{res:04d}-{resi}:HO2'",
+         {"kind": {InteractionType.COVALENT.value}, "bond_length": 1.04, "base": True}),
+    ])
+    pebble_edges = [
+        (f"A{res:04d}-{resi}:C2", f"A{res:04d}-{resi}:N1", {"weight": 0}),
+        (f"A{res:04d}-{resi}:N1", f"A{res:04d}-{resi}:C2", {"weight": 5}),
+        # Backbone
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:OP1", {"weight": 0}),
+        (f"A{res:04d}-{resi}:OP1", f"A{res:04d}-{resi}:P", {"weight": 5}),
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:OP2", {"weight": 0}),
+        (f"A{res:04d}-{resi}:OP2", f"A{res:04d}-{resi}:P", {"weight": 5}),
+        (f"A{res:04d}-{resi}:O5'", f"A{res:04d}-{resi}:P", {"weight": 0}),
+        (f"A{res:04d}-{resi}:P", f"A{res:04d}-{resi}:O5'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:O5'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O5'", f"A{res:04d}-{resi}:C5'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:C5'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C5'", f"A{res:04d}-{resi}:C4'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:O4'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O4'", f"A{res:04d}-{resi}:C4'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:C4'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C4'", f"A{res:04d}-{resi}:C3'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:O3'", f"A{res:04d}-{resi}:C3'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:O3'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C3'", f"A{res:04d}-{resi}:C2'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:C3'", {"weight": 5}),
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:C1'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C1'", f"A{res:04d}-{resi}:C2'", {"weight": 5}),
+    ] + ([
+        (f"A{res:04d}-{resi}:C5", f"A{res:04d}-{resi}:C7'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:C7", f"A{res:04d}-{resi}:C5", {"weight": 5}),
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:C2'", f"A{res:04d}-{resi}:O2'", {"weight": 0}),
+        (f"A{res:04d}-{resi}:O2'", f"A{res:04d}-{resi}:C2'", {"weight": 5}),
+    ])
+    pebble_map = dict(**{
+        f"A{res:04d}-{resi}:N1": 1,
+        # Backbone
+        f"A{res:04d}-{resi}:OP1": 1,
+        f"A{res:04d}-{resi}:OP2": 1,
+        f"A{res:04d}-{resi}:P": 1,
+        f"A{res:04d}-{resi}:O5'": 1,
+        f"A{res:04d}-{resi}:C5'": 1,
+        f"A{res:04d}-{resi}:O4'": 1,
+        f"A{res:04d}-{resi}:C4'": 1,
+        f"A{res:04d}-{resi}:C3'": 1,
+        f"A{res:04d}-{resi}:O3'": 6,
+        f"A{res:04d}-{resi}:C2'": 1,
+        f"A{res:04d}-{resi}:C1'": 1,
+    }, **({
+        f"A{res:04d}-{resi}:C7": 1,
+    } if is_dna else {
+        f"A{res:04d}-{resi}:O2'": 1,
+    }))
+    pebble_bars = [
+        # Backbone
+        (f"A{res:04d}-{resi}:OP1", f"A{res:04d}-{resi}:P", 1),
+        (f"A{res:04d}-{resi}:O4'", f"A{res:04d}-{resi}:C1'", 5),
+    ] + ([
+        # not required
+    ] if is_dna else [
+        (f"A{res:04d}-{resi}:O2'", f"A{res:04d}-{resi}:C2'", 1),
+    ])
+
+    return format_coords(
         coords=coords, hydrogen_mapping=hydrogen_mapping, covalent_edges=covalent_edges,
         pebble_edges=pebble_edges, pebble_map=pebble_map, pebble_bars=pebble_bars,
         exclude=exclude

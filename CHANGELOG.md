@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- Connected dangling option `-t`/`--threshold` for `tram-xtc`
+- Extended pebbled graph template for DNA & RNA molecules
+
 ## [0.1.1] - 2025-05-16
 
 ### Fixed

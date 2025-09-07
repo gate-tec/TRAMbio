@@ -53,20 +53,20 @@ class TestMockData:
     def mock_data_stream(self):
         pdb_stream = StringIO()
         pdb_stream.write(textwrap.dedent("""\
-            HEADER    PROTEIN                                 03-FEB-25   XXXX              
-            TITLE     EXAMPLE PROTEIN                                                       
-            MODEL        1                                                                  
-            ATOM      1  CA  GLY A   1      -1.561   1.386   0.000  0.00  0.00           C  
-            ATOM      2  N   GLY A   1      -1.070   0.000   0.000  0.00  0.00           N  
-            ATOM      3  H   GLY A   1       0.000   0.000   0.000  0.00  0.00           H  
-            TER       4                                                                     
-            ATOM      5  CG  ASN A   2      -1.915  10.000   0.000  0.00  0.00           C  
-            ATOM      6  OD1 ASN A   2      -1.915  11.270   0.000  0.00  0.00           O  
-            ATOM      7  ND2 ASN A   2      -0.535  10.000   0.000  0.00  0.00           N  
-            ATOM      8 HD21 ASN A   2       0.000  10.927   0.000  0.00  0.00           H  
-            ATOM      9 HD22 ASN A   2       0.000   9.073   0.000  0.00  0.00           H  
-            ENDMDL                                                                          
-            END                                                                                                                                              
+            HEADER    PROTEIN                                 03-FEB-25   XXXX
+            TITLE     EXAMPLE PROTEIN
+            MODEL        1
+            ATOM      1  CA  GLY A   1      -1.561   1.386   0.000  0.00  0.00           C
+            ATOM      2  N   GLY A   1      -1.070   0.000   0.000  0.00  0.00           N
+            ATOM      3  H   GLY A   1       0.000   0.000   0.000  0.00  0.00           H
+            TER       4
+            ATOM      5  CG  ASN A   2      -1.915  10.000   0.000  0.00  0.00           C
+            ATOM      6  OD1 ASN A   2      -1.915  11.270   0.000  0.00  0.00           O
+            ATOM      7  ND2 ASN A   2      -0.535  10.000   0.000  0.00  0.00           N
+            ATOM      8 HD21 ASN A   2       0.000  10.927   0.000  0.00  0.00           H
+            ATOM      9 HD22 ASN A   2       0.000   9.073   0.000  0.00  0.00           H
+            ENDMDL
+            END
             """))
 
         pdb_stream.seek(0)
@@ -80,15 +80,15 @@ class TestMockData:
         """Requires module :py:mod:`TRAMbio.util.patches.biopandas`"""
         pdb_stream = StringIO()
         pdb_stream.write(textwrap.dedent("""\
-        HEADER    PROTEIN                                 03-FEB-25   XXXX              
-        TITLE     EXAMPLE PROTEIN                                                       
-        MODEL        1                                                                  
+        HEADER    PROTEIN                                 03-FEB-25   XXXX
+        TITLE     EXAMPLE PROTEIN
+        MODEL        1
         ATOM      1  NZ  LYS A   1      -0.357   0.000   0.000  0.00  0.00           N1+
-        ATOM      2  HZ1 LYS A   1       0.000   1.009   0.000  0.00  0.00           H  
-        ATOM      3  HZ2 LYS A   1       0.000  -0.504   0.873  0.00  0.00           H  
-        ATOM      4  HZ3 LYS A   1       0.000  -0.504  -0.873  0.00  0.00           H  
-        ATOM      5  CE  LYS A   1      -1.827   0.000   0.000  0.00  0.00           C  
-        ENDMDL                                                                          
+        ATOM      2  HZ1 LYS A   1       0.000   1.009   0.000  0.00  0.00           H
+        ATOM      3  HZ2 LYS A   1       0.000  -0.504   0.873  0.00  0.00           H
+        ATOM      4  HZ3 LYS A   1       0.000  -0.504  -0.873  0.00  0.00           H
+        ATOM      5  CE  LYS A   1      -1.827   0.000   0.000  0.00  0.00           C
+        ENDMDL
         """))
 
         pdb_stream.seek(0)
@@ -102,8 +102,8 @@ class TestMockData:
     def mock_data_pdb_header(self):
         header_stream = StringIO()
         header_stream.write(textwrap.dedent("""\
-        HEADER    PROTEIN                                 03-FEB-25   XXXX              
-        TITLE     EXAMPLE PROTEIN                                                       
+        HEADER    PROTEIN                                 03-FEB-25   XXXX
+        TITLE     EXAMPLE PROTEIN
         """))
 
         header_stream.seek(0)
@@ -239,7 +239,7 @@ class TestPdbFileContext(TestMockPaths, TestMockData, TestParameters):
 
         # verify file exists
         assert os.path.exists(out_path_pdb)
-        with open(out_path_pdb, "r") as file:
+        with open(out_path_pdb) as file:
             lines = file.readlines()
 
         assert lines[0].startswith("HEADER")
@@ -255,7 +255,7 @@ class TestPdbFileContext(TestMockPaths, TestMockData, TestParameters):
 
         # verify file exists
         assert os.path.exists(out_path_pdb)
-        with open(out_path_pdb, "r") as file:
+        with open(out_path_pdb) as file:
             lines = file.readlines()
 
         assert lines[0].startswith("HEADER")
@@ -275,7 +275,7 @@ class TestPdbFileContext(TestMockPaths, TestMockData, TestParameters):
 
         # verify file exists
         assert os.path.exists(out_path_pdb)
-        with open(out_path_pdb, "r") as file:
+        with open(out_path_pdb) as file:
             lines = file.readlines()
 
         assert lines[0].startswith("HEADER")
@@ -300,7 +300,7 @@ class TestPdbFileContext(TestMockPaths, TestMockData, TestParameters):
 
         # verify file exists
         assert os.path.exists(out_path_pdb)
-        with open(out_path_pdb, "r") as file:
+        with open(out_path_pdb) as file:
             lines = file.readlines()
 
         assert lines[0].startswith("HEADER")

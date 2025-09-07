@@ -73,7 +73,7 @@ pip install .[all]
 Execution of the general (k,l)-Pebble Game via API:
 ```pycon
 >>> import networkx as nx  # TODO
->>> from tram.pebble_game.pebble_game import run_pebble_game
+>>> from TRAMbio.pebble_game.pebble_game import run_pebble_game
 >>> graph = nx.complete_graph(5)
 >>> rho, _ , graph_type = run_pebble_game(graph, k=2, l=3)
 >>> print(f"The graph is {graph_type} with {rho} redundant edges.")
@@ -93,7 +93,7 @@ pymol 1l2y_components.pml
 ## CLI
 
 - `tram-pdb`: command for analyzing a single-state protein from a PDB file.
-  
+
   The notable arguments are:
   - `-p`, `--pdb`: Protein input file in PDB v3 format.
   - `-o`, `--out-dir`: Directory for output files. (default: next to input file)
@@ -101,7 +101,7 @@ pymol 1l2y_components.pml
   <br/>
   If not specified, name is derived from input file name.
 - `tram-xtc`: command for analyzing an MD Simulation trajectory.
-  
+
   The notable arguments are:
   - `-x`, `--xtc`: Trajectory file in XTC format.
   - `-p`, `--pdb`: Protein input file in PDB v3 format.
@@ -116,7 +116,7 @@ pymol 1l2y_components.pml
   <br/>
   Requires either module [MDAnalysis](https://pypi.org/project/MDAnalysis/) (current default) or [mdtraj](https://pypi.org/project/mdtraj/) to load trajectories.
 - `tram-pymol`: command for creating a PyMol visualization from the output of above commands.
-  
+
   The notable arguments are:
   - `-p`, `--pdb`: Protein input file in PDB v3 format.
   - `-x`, `--xml`: Path to components XML resulting from the component analysis.
@@ -130,7 +130,7 @@ pymol 1l2y_components.pml
   <br/>
   Requires either module [MDAnalysis](https://pypi.org/project/MDAnalysis/) (current default) or [mdtraj](https://pypi.org/project/mdtraj/) to load trajectories.
 - `tram-residue`: command for converting (atom-level) component results to residue-level.
-  
+
   The notable arguments are:
   - `-x`, `--xml`: Path to components XML resulting from the component analysis.
   - `-o`, `--out-dir`: Directory for output files. (default: next to input file)
@@ -138,7 +138,7 @@ pymol 1l2y_components.pml
   <br/>
   If not specified, name is derived from input file name.
 - `tram-pebble`: command for applying the general (k,l)-Component Pebble Game to provided graphs.
-  
+
   The notable arguments are:
   - `-g`, `--graph`: Path to the input file in [GRAPHML format](http://graphml.graphdrawing.org/).
   - `-k`, `--k-param`: Parameter `k` of the Pebble Game. Needs to be a positive integer. (default: 2)

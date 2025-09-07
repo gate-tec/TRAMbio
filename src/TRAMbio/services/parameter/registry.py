@@ -21,20 +21,20 @@ def _bool_env_var_parser(x: str) -> bool:
 
 
 class ParameterRegistry:
-    __default_values: Dict[str, Tuple[_Parameter, type, Callable[[_Parameter], bool]]] = {}
+    __default_values: dict[str, tuple[_Parameter, type, Callable[[_Parameter], bool]]] = {}
     __instances = {}
 
     def __init__(self, parameter_id: str):
         self.__parameter_id = parameter_id
-        self.__instance_values: Dict[str, _Parameter] = {}
-        self.__acquired_lock: Optional[str] = None
+        self.__instance_values: dict[str, _Parameter] = {}
+        self.__acquired_lock: str | None = None
 
     @classmethod
     def register_parameter(
             cls,
             parameter_key: str,
-            default_value: Optional[_Parameter],
-            validator: Optional[Callable[[_Parameter], bool]] = None
+            default_value: _Parameter | None,
+            validator: Callable[[_Parameter], bool] | None = None
     ):
         param_type = type(default_value) if default_value is not None else str
         env_var_parser = param_type
@@ -65,7 +65,7 @@ class ParameterRegistry:
     def load_registry(cls, registry: ParameterRegistry):
         cls.__instances[registry.__parameter_id] = registry
 
-    def __call__(self, *args, **kwargs) -> Optional[_Parameter]:
+    def __call__(self, *args, **kwargs) -> _Parameter | None:
         if len(args) == 1 and isinstance(args[0], str):
             parameter_key = str(args[0])
             if parameter_key in self.__instance_values.keys():
@@ -74,7 +74,7 @@ class ParameterRegistry:
                 return self.__default_values[parameter_key][0]
         return None
 
-    def get_parameter(self, parameter_key: str) -> Optional[_Parameter]:
+    def get_parameter(self, parameter_key: str) -> _Parameter | None:
         return self.__call__(parameter_key)
 
     def set_parameter(self, parameter_key: str, value: _Parameter):

@@ -9,8 +9,11 @@ from TRAMbio.util.constants.interaction import InteractionType
 from TRAMbio.util.structure_library.graph_struct import GraphKey, ProteinGraph
 from TRAMbio.util.wrapper.biopandas.pandas_pdb import CustomPandasPdb
 from tests.mock.services.interactions.mock_aromatic_interaction_service import MockAromaticInteractionService
-from tests.util.graphs import construct_protein_graph_base, graph_gly_donor, graph_gly_acceptor, graph_methane, \
-    graph_phe_aromatic_xy_plane
+from tests.util.graphs import graph_gly_donor, graph_gly_acceptor, graph_methane, graph_phe_aromatic_xy_plane
+from tests.util.graphs_dna import graph_adenine as graph_dna_a, graph_thymine as graph_dna_t, \
+    graph_guanine as graph_dna_g, graph_cytosine as graph_dna_c
+from tests.util.graphs_rna import graph_adenine as graph_rna_a, graph_uracil as graph_rna_u, \
+    graph_guanine as graph_rna_g, graph_cytosine as graph_rna_c
 from tests.util.protein_graph_utils import *
 from tests.mock.services.interactions import *
 
@@ -22,7 +25,7 @@ from tests.mock.services.interactions import *
 # The only relevant parameters are UNIQUE_BONDS and KEEP_HETS
 
 class TestParameters:
-    
+
     TESTED_SERVICE = "PdbStructureService"
     LENGTH_EPSILON = 0.05
 
@@ -239,6 +242,26 @@ class TestMockData:
 
         yield CustomPandasPdb().read_pdb_from_list(pdb_lines).export_first_model(), load_as_atom_df(coords)
 
+    # DNA & RNA
+
+    @pytest.fixture
+    def mock_protein_data_dna_adenine(self):
+        coords, _, _, _, _, _ = graph_dna_a()
+        others = []
+
+        pdb_lines = convert_to_pdb_lines(coords, others)
+
+        yield CustomPandasPdb().read_pdb_from_list(pdb_lines).export_first_model(), load_as_atom_df(coords)
+
+    @pytest.fixture
+    def mock_protein_data_rna_adenine(self):
+        coords, _, _, _, _, _ = graph_rna_a()
+        others = []
+
+        pdb_lines = convert_to_pdb_lines(coords, others)
+
+        yield CustomPandasPdb().read_pdb_from_list(pdb_lines).export_first_model(), load_as_atom_df(coords)
+
 
 ###################
 # Mock Graphs #####
@@ -308,7 +331,7 @@ class TestMockGraphs:
     def mock_protein_graph_gly_gly_no_peptide(self):
         """multi-residue ATOM without peptide bond"""
         coords, hm, cov, pe, pm, pb = graph_gly_acceptor(x_offset=-1.27, y_offset=3.89)
-        coords2, hm2, cov2, pe2, pm2, pb2 = graph_gly_donor(len(coords) + 1, 2, x_offset=-1.07, rotations=[(180, 'Z')])
+        coords2, hm2, cov2, pe2, pm2, pb2 = graph_gly_donor(len(coords) + 2, 2, x_offset=-1.07, rotations=[(180, 'Z')])
         others = [
             ["TER", f"{len(coords) + 1:5d}", len(coords) + 1]
         ]
@@ -448,6 +471,249 @@ class TestMockGraphs:
             pm=dict(pm1, **pm2),
             pb=pb1 + pb2
         )
+
+    # DNA & RNA
+
+    @pytest.fixture
+    def mock_protein_graph_dna_a(self):
+        """Single adenine residue"""
+        coords, hm, cov, pe, pm, pb = graph_dna_a()
+        others = []
+
+        protein_graph = construct_protein_graph_base(
+            coords=coords,
+            others=others,
+            hm=hm,
+            cov=cov,
+            pe=pe,
+            pm=pm,
+            pb=pb
+        )
+
+        yield protein_graph.atom_df.copy(), protein_graph.others_df.copy(), protein_graph
+
+    @pytest.fixture
+    def mock_protein_graph_rna_a(self):
+        """Single adenine residue"""
+        coords, hm, cov, pe, pm, pb = graph_rna_a()
+        others = []
+
+        protein_graph = construct_protein_graph_base(
+            coords=coords,
+            others=others,
+            hm=hm,
+            cov=cov,
+            pe=pe,
+            pm=pm,
+            pb=pb
+        )
+
+        yield protein_graph.atom_df.copy(), protein_graph.others_df.copy(), protein_graph
+
+    @pytest.fixture
+    def mock_protein_graph_dna_c(self):
+        """Single cytosine residue"""
+        coords, hm, cov, pe, pm, pb = graph_dna_c()
+        others = []
+
+        protein_graph = construct_protein_graph_base(
+            coords=coords,
+            others=others,
+            hm=hm,
+            cov=cov,
+            pe=pe,
+            pm=pm,
+            pb=pb
+        )
+
+        yield protein_graph.atom_df.copy(), protein_graph.others_df.copy(), protein_graph
+
+    @pytest.fixture
+    def mock_protein_graph_rna_c(self):
+        """Single cytosine residue"""
+        coords, hm, cov, pe, pm, pb = graph_rna_c()
+        others = []
+
+        protein_graph = construct_protein_graph_base(
+            coords=coords,
+            others=others,
+            hm=hm,
+            cov=cov,
+            pe=pe,
+            pm=pm,
+            pb=pb
+        )
+
+        yield protein_graph.atom_df.copy(), protein_graph.others_df.copy(), protein_graph
+
+    @pytest.fixture
+    def mock_protein_graph_dna_g(self):
+        """Single guanine residue"""
+        coords, hm, cov, pe, pm, pb = graph_dna_a()
+        others = []
+
+        protein_graph = construct_protein_graph_base(
+            coords=coords,
+            others=others,
+            hm=hm,
+            cov=cov,
+            pe=pe,
+            pm=pm,
+            pb=pb
+        )
+
+        yield protein_graph.atom_df.copy(), protein_graph.others_df.copy(), protein_graph
+
+    @pytest.fixture
+    def mock_protein_graph_rna_g(self):
+        """Single guanine residue"""
+        coords, hm, cov, pe, pm, pb = graph_rna_a()
+        others = []
+
+        protein_graph = construct_protein_graph_base(
+            coords=coords,
+            others=others,
+            hm=hm,
+            cov=cov,
+            pe=pe,
+            pm=pm,
+            pb=pb
+        )
+
+        yield protein_graph.atom_df.copy(), protein_graph.others_df.copy(), protein_graph
+
+    @pytest.fixture
+    def mock_protein_graph_dna_t(self):
+        """Single thymine residue"""
+        coords, hm, cov, pe, pm, pb = graph_dna_a()
+        others = []
+
+        protein_graph = construct_protein_graph_base(
+            coords=coords,
+            others=others,
+            hm=hm,
+            cov=cov,
+            pe=pe,
+            pm=pm,
+            pb=pb
+        )
+
+        yield protein_graph.atom_df.copy(), protein_graph.others_df.copy(), protein_graph
+
+    @pytest.fixture
+    def mock_protein_graph_rna_u(self):
+        """Single uracil residue"""
+        coords, hm, cov, pe, pm, pb = graph_rna_a()
+        others = []
+
+        protein_graph = construct_protein_graph_base(
+            coords=coords,
+            others=others,
+            hm=hm,
+            cov=cov,
+            pe=pe,
+            pm=pm,
+            pb=pb
+        )
+
+        yield protein_graph.atom_df.copy(), protein_graph.others_df.copy(), protein_graph
+
+    @pytest.fixture
+    def mock_extra_dna_a_a_phosphodiester(self):
+        yield [
+            (f"A{1:04d}- DA:O3'", f"A{2:04d}- DA:P",
+             {"kind": {InteractionType.PHOSPHODIESTER_BOND.value, InteractionType.COVALENT.value}, "bond_length": 1.6, "base": True})
+        ], [
+            (f"A{2:04d}- DA:P", f"A{1:04d}- DA:O3'", {"weight": 0}),
+            (f"A{1:04d}- DA:O3'", f"A{2:04d}- DA:P", {"weight": 5})
+        ], {
+            f"A{1:04d}- DA:O3'": 1
+        }
+
+    @pytest.fixture
+    def mock_protein_graph_dna_a_a_phosphodiester(self, mock_extra_dna_a_a_phosphodiester):
+        """multi-residue ATOM with phosphodiester bond"""
+        coords, hm, cov, pe, pm, pb = graph_dna_a(1, 1)
+        coords2, hm2, cov2, pe2, pm2, pb2 = graph_dna_a(len(coords) + 1, 2, z_offset=-3.150, rotations=[(-45, 'Z')])
+        others = []
+
+        extra = mock_extra_dna_a_a_phosphodiester
+        cov += extra[0]
+        pe += extra[1]
+        pm = dict(pm, **extra[2])
+
+        protein_graph = construct_protein_graph_base(
+            coords=coords + coords2,
+            others=others,
+            hm=hm + hm2,
+            cov=cov + cov2,
+            pe=pe + pe2,
+            pm=dict(pm, **pm2),
+            pb=pb + pb2
+        )
+
+        yield protein_graph.atom_df.copy(), protein_graph.others_df.copy(), protein_graph
+
+    @pytest.fixture
+    def mock_protein_graph_dna_a_a_no_phosphodiester(self):
+        """multi-residue ATOM without phosphodiester bond"""
+        coords, hm, cov, pe, pm, pb = graph_dna_a(1, 1)
+        # to prevent the assignment of a standard covalent bond due to proximity, O3' and P need to be moved slightly
+        # further apart (~1 Angstrom)
+        coords2, hm2, cov2, pe2, pm2, pb2 = graph_dna_a(len(coords) + 2, 2, z_offset=-3.150 - 1.0, rotations=[(-45, 'Z')])
+        others = [
+            ["TER", f"{len(coords) + 1:5d}", len(coords) + 1]
+        ]
+
+
+
+        protein_graph = construct_protein_graph_base(
+            coords=coords + coords2,
+            others=others,
+            hm=hm + hm2,
+            cov=cov + cov2,
+            pe=pe + pe2,
+            pm=dict(pm, **pm2),
+            pb=pb + pb2
+        )
+
+        yield protein_graph.atom_df.copy(), protein_graph.others_df.copy(), protein_graph
+
+    @pytest.fixture
+    def mock_extra_rna_g_a_phosphodiester(self):
+        yield [
+            (f"A{1:04d}-  G:O3'", f"A{2:04d}-  A:P",
+             {"kind": {InteractionType.PHOSPHODIESTER_BOND.value, InteractionType.COVALENT.value}, "bond_length": 1.9,
+              "base": True})
+        ], [
+            (f"A{2:04d}-  A:P", f"A{1:04d}-  G:O3'", {"weight": 0}),
+            (f"A{1:04d}-  G:O3'", f"A{2:04d}-  A:P", {"weight": 5})
+        ], {
+            f"A{1:04d}-  G:O3'": 1
+        }
+
+    @pytest.fixture
+    def mock_protein_graph_rna_g_a_phosphodiester(self, mock_extra_rna_g_a_phosphodiester):
+        coords, hm, cov, pe, pm, pb = graph_rna_g(1, 1)
+        coords2, hm2, cov2, pe2, pm2, pb2 = graph_rna_a(len(coords) + 1, 2, -0.32, 1.53, -3.3, rotations=[(-36, 'Y'), (-15, 'Z'), (10, 'X')])
+        others = []
+
+        extra = mock_extra_rna_g_a_phosphodiester
+        cov += extra[0]
+        pe += extra[1]
+        pm = dict(pm, **extra[2])
+
+        protein_graph = construct_protein_graph_base(
+            coords=coords + coords2,
+            others=others,
+            hm=hm + hm2,
+            cov=cov + cov2,
+            pe=pe + pe2,
+            pm=dict(pm, **pm2),
+            pb=pb + pb2
+        )
+
+        yield protein_graph.atom_df.copy(), protein_graph.others_df.copy(), protein_graph
 
 
 ##################
@@ -591,6 +857,36 @@ class TestExportAtomDf(TestMockData, TestParameters):
 
         with pytest.raises(KeyError, match="Duplicate"):
             structure_service.export_atom_df(raw_df, True, parameters_pdb_structure_default)
+
+    # DNA & RNA
+
+    # - test general DNA graph data
+    def test_dna_data(self, mock_protein_data_dna_adenine, parameters_pdb_structure_default):
+        structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
+        raw_df, target_atom_df = mock_protein_data_dna_adenine
+
+        atom_df = structure_service.export_atom_df(raw_df, False, parameters_pdb_structure_default)
+
+        difference = pd.concat([
+            atom_df.loc[:, ["node_id", "x_coord", "y_coord", "z_coord"]],
+            target_atom_df.loc[:, ["node_id", "x_coord", "y_coord", "z_coord"]]
+        ]).reset_index(drop=True).drop_duplicates(keep=False)
+
+        assert len(difference) == 0
+
+    # - test general RNA graph data
+    def test_rna_data(self, mock_protein_data_rna_adenine, parameters_pdb_structure_default):
+        structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
+        raw_df, target_atom_df = mock_protein_data_rna_adenine
+
+        atom_df = structure_service.export_atom_df(raw_df, False, parameters_pdb_structure_default)
+
+        difference = pd.concat([
+            atom_df.loc[:, ["node_id", "x_coord", "y_coord", "z_coord"]],
+            target_atom_df.loc[:, ["node_id", "x_coord", "y_coord", "z_coord"]]
+        ]).reset_index(drop=True).drop_duplicates(keep=False)
+
+        assert len(difference) == 0
 
 
 # test has_hydrogen_atoms
@@ -764,6 +1060,132 @@ class TestCreateGraphStruct(TestMockServices, TestMockGraphs, TestHelpFunctions)
     def test_peptide_and_hetatm(self, mock_protein_graph_gly_gly_methane, mock_services_cov_empty, parameters_pdb_structure_default):
         structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
         atom_df, others_df, target_protein_graph = mock_protein_graph_gly_gly_methane
+
+        protein_graph = structure_service.create_graph_struct(atom_df, others_df, parameters_pdb_structure_default)
+
+        self.compare_graph_data(
+            protein_graph=protein_graph,
+            target_protein_graph=target_protein_graph
+        )
+
+    # DNA & RNA
+
+    # - test general DNA graph template
+    def test_dna_a_base_graph(self, mock_protein_graph_dna_a, mock_services_cov_empty, parameters_pdb_structure_default):
+        structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
+        atom_df, others_df, target_protein_graph = mock_protein_graph_dna_a
+
+        protein_graph = structure_service.create_graph_struct(atom_df, others_df, parameters_pdb_structure_default)
+
+        self.compare_graph_data(
+            protein_graph=protein_graph,
+            target_protein_graph=target_protein_graph
+        )
+
+    def test_dna_c_base_graph(self, mock_protein_graph_dna_c, mock_services_cov_empty, parameters_pdb_structure_default):
+        structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
+        atom_df, others_df, target_protein_graph = mock_protein_graph_dna_c
+
+        protein_graph = structure_service.create_graph_struct(atom_df, others_df, parameters_pdb_structure_default)
+
+        self.compare_graph_data(
+            protein_graph=protein_graph,
+            target_protein_graph=target_protein_graph
+        )
+
+    def test_dna_g_base_graph(self, mock_protein_graph_dna_g, mock_services_cov_empty, parameters_pdb_structure_default):
+        structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
+        atom_df, others_df, target_protein_graph = mock_protein_graph_dna_g
+
+        protein_graph = structure_service.create_graph_struct(atom_df, others_df, parameters_pdb_structure_default)
+
+        self.compare_graph_data(
+            protein_graph=protein_graph,
+            target_protein_graph=target_protein_graph
+        )
+
+    def test_dna_t_base_graph(self, mock_protein_graph_dna_t, mock_services_cov_empty, parameters_pdb_structure_default):
+        structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
+        atom_df, others_df, target_protein_graph = mock_protein_graph_dna_t
+
+        protein_graph = structure_service.create_graph_struct(atom_df, others_df, parameters_pdb_structure_default)
+
+        self.compare_graph_data(
+            protein_graph=protein_graph,
+            target_protein_graph=target_protein_graph
+        )
+
+    # - test general RNA graph template
+    def test_rna_a_base_graph(self, mock_protein_graph_rna_a, mock_services_cov_empty, parameters_pdb_structure_default):
+        structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
+        atom_df, others_df, target_protein_graph = mock_protein_graph_rna_a
+
+        protein_graph = structure_service.create_graph_struct(atom_df, others_df, parameters_pdb_structure_default)
+
+        self.compare_graph_data(
+            protein_graph=protein_graph,
+            target_protein_graph=target_protein_graph
+        )
+
+    def test_rna_c_base_graph(self, mock_protein_graph_rna_c, mock_services_cov_empty, parameters_pdb_structure_default):
+        structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
+        atom_df, others_df, target_protein_graph = mock_protein_graph_rna_c
+
+        protein_graph = structure_service.create_graph_struct(atom_df, others_df, parameters_pdb_structure_default)
+
+        self.compare_graph_data(
+            protein_graph=protein_graph,
+            target_protein_graph=target_protein_graph
+        )
+
+    def test_rna_g_base_graph(self, mock_protein_graph_rna_g, mock_services_cov_empty, parameters_pdb_structure_default):
+        structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
+        atom_df, others_df, target_protein_graph = mock_protein_graph_rna_g
+
+        protein_graph = structure_service.create_graph_struct(atom_df, others_df, parameters_pdb_structure_default)
+
+        self.compare_graph_data(
+            protein_graph=protein_graph,
+            target_protein_graph=target_protein_graph
+        )
+
+    def test_rna_u_base_graph(self, mock_protein_graph_rna_u, mock_services_cov_empty, parameters_pdb_structure_default):
+        structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
+        atom_df, others_df, target_protein_graph = mock_protein_graph_rna_u
+
+        protein_graph = structure_service.create_graph_struct(atom_df, others_df, parameters_pdb_structure_default)
+
+        self.compare_graph_data(
+            protein_graph=protein_graph,
+            target_protein_graph=target_protein_graph
+        )
+
+    # - test phosphodiester-bond
+    def test_dna_phosphodiester(self, mock_protein_graph_dna_a_a_phosphodiester, mock_services_cov_empty, parameters_pdb_structure_default):
+        structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
+        atom_df, others_df, target_protein_graph = mock_protein_graph_dna_a_a_phosphodiester
+
+        protein_graph = structure_service.create_graph_struct(atom_df, others_df, parameters_pdb_structure_default)
+
+        self.compare_graph_data(
+            protein_graph=protein_graph,
+            target_protein_graph=target_protein_graph
+        )
+
+    def test_dna_no_phosphodiester(self, mock_protein_graph_dna_a_a_no_phosphodiester, mock_services_cov_empty, parameters_pdb_structure_default):
+        structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
+        atom_df, others_df, target_protein_graph = mock_protein_graph_dna_a_a_no_phosphodiester
+
+        protein_graph = structure_service.create_graph_struct(atom_df, others_df, parameters_pdb_structure_default)
+
+        self.compare_graph_data(
+            protein_graph=protein_graph,
+            target_protein_graph=target_protein_graph
+        )
+
+    def test_rna_phosphodiester(self, mock_protein_graph_rna_g_a_phosphodiester, mock_services_cov_empty, parameters_pdb_structure_default):
+        structure_service = StructureServiceRegistry.PDB.query_service(self.TESTED_SERVICE)
+        atom_df, others_df, target_protein_graph = mock_protein_graph_rna_g_a_phosphodiester
 
         protein_graph = structure_service.create_graph_struct(atom_df, others_df, parameters_pdb_structure_default)
 

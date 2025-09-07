@@ -47,7 +47,7 @@ class IPdbIOService(IBaseService, metaclass=abc.ABCMeta):
         return NotImplemented
 
     @abc.abstractmethod
-    def read(self, input_data: Union[str, StringIO], verbose: bool = True) -> CustomPandasPdb:
+    def read(self, input_data: str | StringIO, verbose: bool = True) -> CustomPandasPdb:
         raise NotImplementedError
 
     @contextmanager
@@ -56,7 +56,7 @@ class IPdbIOService(IBaseService, metaclass=abc.ABCMeta):
             self,
             pdb_path: str,
             header_stream: StringIO
-    ) -> Generator[AbstractPdbIOContext, None, None]:
+    ) -> Generator[AbstractPdbIOContext]:
         raise NotImplementedError
 
 
@@ -72,7 +72,7 @@ class IXtcIOService(IBaseService, metaclass=abc.ABCMeta):
         return NotImplemented
 
     @abc.abstractmethod
-    def read(self, xtc_path: str, pdb_path: str, stride: int) -> Tuple[int, Generator[Tuple[int, pd.DataFrame], None, None]]:
+    def read(self, xtc_path: str, pdb_path: str, stride: int) -> tuple[int, Generator[tuple[int, pd.DataFrame]]]:
         raise NotImplementedError
 
 
@@ -94,11 +94,11 @@ class IXmlIOService(IBaseService, metaclass=abc.ABCMeta):
         return NotImplemented
 
     @abc.abstractmethod
-    def read(self, xml_path: str) -> Tuple[ET.Element, ET.Element]:
+    def read(self, xml_path: str) -> tuple[ET.Element, ET.Element]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def read_graphml(self, graphml_path: str) -> Union[nx.Graph, nx.MultiGraph]:
+    def read_graphml(self, graphml_path: str) -> nx.Graph | nx.MultiGraph:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -114,7 +114,7 @@ class IXmlIOService(IBaseService, metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def write_temp_xml_fragment(self, xml_file: TextIO, halo: Optional[List[str]], sub_components: List[str]) -> None:
+    def write_temp_xml_fragment(self, xml_file: TextIO, halo: list[str] | None, sub_components: list[str]) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -122,11 +122,11 @@ class IXmlIOService(IBaseService, metaclass=abc.ABCMeta):
             self,
             xml_path: str,
             temp_path: str,
-            base_components: List[str],
+            base_components: list[str],
             num_base_components: int,
-            component_mapping: Dict[str, StructureRef],
+            component_mapping: dict[str, StructureRef],
             is_trajectory: bool,
-            discarded_keys: Optional[List[str]] = None,
+            discarded_keys: list[str] | None = None,
             parameter_id: str = ''
     ) -> None:
         raise NotImplementedError
@@ -136,7 +136,7 @@ class IXmlIOService(IBaseService, metaclass=abc.ABCMeta):
             self,
             xml_out_path: str,
             category: str,
-            components: List[List[str]],
+            components: list[list[str]],
             parameter_id: str = ''
     ) -> None:
         raise NotImplementedError
@@ -170,7 +170,7 @@ class IBondIOService(IBaseService, metaclass=abc.ABCMeta):
             self,
             bond_path: str,
             all_weighted_bonds: bool = False
-    ) -> Generator[Set[Tuple[str, str]], str, None]:
+    ) -> Generator[set[tuple[str, str]], str, None]:
         raise NotImplementedError
 
 
@@ -191,7 +191,7 @@ class IPyMolIOService(IBaseService, metaclass=abc.ABCMeta):
             pml_path: str,
             out_prefix: str,
             pdb_path: str,
-            num_states: Optional[int],
+            num_states: int | None,
             max_color_value: int,
             bond_commands: str
     ) -> None:

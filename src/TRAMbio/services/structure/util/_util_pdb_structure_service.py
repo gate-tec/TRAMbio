@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 from TRAMbio.util.constants.graph import STANDARD_RESIDUES, RESI_GRAPH_TEMPLATES, HETATM_GRAPH_TEMPLATES, \
-    MAX_NUMBER_OF_BONDS
+    MAX_NUMBER_OF_BONDS, AA_RESIDUES, NA_RESIDUES
 from TRAMbio.util.constants.interaction import InteractionType
 from TRAMbio.util.graphein.constants import COVALENT_RADII
 from TRAMbio.util.graphein.functions import compute_distmat, assign_bond_states_to_dataframe, \
@@ -25,6 +25,7 @@ def create_base_graphs(heavy_atom_df: pd.DataFrame, all_atom_df: pd.DataFrame, t
     graphs: GraphDictionary = initialize_graphs_from_dataframe(atom_df=all_atom_df, heavy_atom_df=heavy_atom_df)
 
     peptide_bond_df: pd.DataFrame = heavy_atom_df.loc[heavy_atom_df['atom_name'].isin(['N', 'C']), :]
+    phosphodiester_bond_df: pd.DataFrame = heavy_atom_df.loc[heavy_atom_df['atom_name'].isin(["O3'", 'P']), :]
 
     # include atomic edges from RESI_GRAPH_TEMPLATES
     queue = []
@@ -56,20 +57,31 @@ def create_base_graphs(heavy_atom_df: pd.DataFrame, all_atom_df: pd.DataFrame, t
                     graphs['full'].nodes[prev_row['node_id']]['residue_name'] = prev_code[1]
 
             if prev_residue is not None and prev_residue not in ter_flags \
-                    and prev_residue.startswith(row['chain_id']) \
-                    and prev_residue[-3:] in STANDARD_RESIDUES and current_residue[-3:] in STANDARD_RESIDUES:
+                    and prev_residue.startswith(row['chain_id']):
                 # Check for valid peptide bond:
                 # 1. no TER flag present
                 # 2. same chain
-                # 3. both are standard residues allowing a regular peptide bond
+                if prev_residue[-3:] in AA_RESIDUES and current_residue[-3:] in AA_RESIDUES:
+                    # 3. both are standard residues allowing a regular peptide bond
 
-                # insert inter-residue edge ('atom', 'pebble')
-                _insert_peptide_bond(
-                    graphs,
-                    peptide_bond_df=peptide_bond_df,
-                    residue_a=prev_residue,
-                    residue_b=current_residue
-                )
+                    # insert inter-residue edge ('atom', 'pebble')
+                    _insert_peptide_bond(
+                        graphs,
+                        peptide_bond_df=peptide_bond_df,
+                        residue_a=prev_residue,
+                        residue_b=current_residue
+                    )
+
+                if prev_residue[-3:] in NA_RESIDUES and current_residue[-3:] in NA_RESIDUES:
+                    # 3. both are standard residues allowing a regular phosphodiester bond
+
+                    # insert inter-residue edge ('atom', 'pebble')
+                    _insert_phosphodiester_bond(
+                        graphs,
+                        phosphodiester_bond_df=phosphodiester_bond_df,
+                        residue_a=prev_residue,
+                        residue_b=current_residue
+                    )
 
             prev_residue = current_residue
             prev_code = None
@@ -150,7 +162,7 @@ def compute_missing_atomic_edges(graphs: GraphDictionary, atom_df: pd.DataFrame,
 
     # naively assign single bond state to all remaining unknown atoms
     extra_naive_bond_states = pd.Series(pdb_df["element_symbol"].map(
-        {'C': 'Csb', 'O': 'Osb', 'N': 'Nsb', 'H': 'Hsb', 'S': 'Ssb'}
+        {'C': 'Csb', 'O': 'Osb', 'N': 'Nsb', 'H': 'Hsb', 'S': 'Ssb', 'P': 'Psb'}
     ))
 
     pdb_df = assign_bond_states_to_dataframe(pdb_df)
@@ -302,6 +314,40 @@ def _insert_peptide_bond(
         graphs['pebble'].nodes[target_node_id_a]['pebbles'] = 1
         # Add 6th edge for rigid resonance/ peptide bond
         graphs['pebble'].graph[GraphKey.STANDARD_EDGES.value].append((target_node_id_a, target_node_id_b, 1))
+
+
+def _insert_phosphodiester_bond(
+        graphs: GraphDictionary, phosphodiester_bond_df: pd.DataFrame,
+        residue_a: str, residue_b: str,
+        tolerance: float = 0.56
+):
+    target_node_id_a = residue_a + ":O3'"
+    target_node_id_b = residue_b + ":P"
+
+    target_frame: pd.DataFrame = phosphodiester_bond_df[phosphodiester_bond_df['node_id'].isin([target_node_id_a, target_node_id_b])]
+    if len(target_frame) != 2:
+        raise KeyError(f'Missing nodes for phosphodiester bond between "{target_node_id_a}" and "{target_node_id_b}"')
+
+    target_frame = target_frame.loc[:, ['residue_number', 'node_id', 'x_coord', 'y_coord', 'z_coord']].reset_index(
+        drop=True)
+
+    sequence_distance = int(target_frame['residue_number'][1]) - int(target_frame['residue_number'][0])
+
+    pos_node_a = target_frame.loc[0, ['x_coord', 'y_coord', 'z_coord']].to_numpy()
+    pos_node_b = target_frame.loc[1, ['x_coord', 'y_coord', 'z_coord']].to_numpy()
+
+    dist_phosphodiester_bond = pos_node_b - pos_node_a
+    len_phosphodiester_bond = np.linalg.norm(dist_phosphodiester_bond)
+
+    if sequence_distance == 1 or len_phosphodiester_bond < 0.67 + 1.06 + tolerance:
+        graphs['atom'].add_edge(target_node_id_a, target_node_id_b, kind={InteractionType.PHOSPHODIESTER_BOND.value},
+                                base=True, bond_length=len_phosphodiester_bond)
+        graphs['full'].add_edge(target_node_id_a, target_node_id_b, kind={InteractionType.PHOSPHODIESTER_BOND.value},
+                                base=True, bond_length=len_phosphodiester_bond)
+
+        graphs['pebble'].add_edge(target_node_id_a, target_node_id_b, weight=5)
+        graphs['pebble'].add_edge(target_node_id_b, target_node_id_a, weight=0)
+        graphs['pebble'].nodes[target_node_id_a]['pebbles'] = 1
 
 
 def export_ter_flagged_residues(atom_df: pd.DataFrame, others_df: pd.DataFrame):

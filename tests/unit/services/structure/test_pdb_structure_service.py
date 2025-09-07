@@ -703,10 +703,6 @@ class TestMockGraphs:
         pe += extra[1]
         pm = dict(pm, **extra[2])
 
-        pdb_lines = convert_to_pdb_lines(coords + coords2, others)
-        with open("/home/handke/Desktop/Paper Revision/test2.pdb", "w") as file:
-            file.writelines(pdb_lines)
-
         protein_graph = construct_protein_graph_base(
             coords=coords + coords2,
             others=others,

@@ -4,7 +4,7 @@ import multiprocessing as mp
 import sys
 import textwrap
 import time
-from typing import Dict, Literal
+from typing import Dict, Literal, List
 
 from loguru import logger
 from pathvalidate import sanitize_filename
@@ -12,7 +12,7 @@ from pathvalidate import sanitize_filename
 from TRAMbio import set_log_level
 
 from TRAMbio.services import WorkflowServiceRegistry, ParameterRegistry
-from TRAMbio.services.parameter import PebbleGameParameter, GeneralWorkflowParameter
+from TRAMbio.services.parameter import PebbleGameParameter, GeneralWorkflowParameter, BaseParameter
 from TRAMbio.util.functions.argparse.base_parser import parse_args_for
 
 from TRAMbio.util.structure_library.argparse import OptionsDictionary
@@ -51,7 +51,7 @@ _CLI_OPTIONS: Dict[str, OptionsDictionary] = {
             """)),
         default=lambda argv: False),
     'cores': OptionsDictionary(
-        id=['-c', '--cores'], args=dict(type=int, metavar='THRESHOLD', help=textwrap.dedent(
+        id=['-c', '--cores'], args=dict(type=int, metavar='INTEGER', help=textwrap.dedent(
             """Number of CPU cores for multiprocessing. (default: 1, no multiprocessing)
             """)),
         default=lambda argv: 1),
@@ -63,6 +63,10 @@ _CLI_OPTIONS: Dict[str, OptionsDictionary] = {
             """)),
         default=lambda argv: 'INFO')
 }
+
+_ENV_VARS: List[BaseParameter] = [
+    GeneralWorkflowParameter.VERBOSE
+]
 
 
 def run_pipeline(
@@ -102,7 +106,11 @@ def main(default_log_level: Literal['TRACE', 'DEBUG', 'INFO', 'SUCCESS', 'WARNIN
         pass
 
     args = parse_args_for(
-        'tram-pebble', "Run (k,l)-Pebble Game on arbitrary graphs.", _CLI_OPTIONS
+        'tram-pebble',
+        "Run (k,l)-Pebble Game on arbitrary graphs.",
+        "-g GRAPH_FILE [-o OUTPUT_DIR] [-n GRAPH_NAME] [-k INTEGER] [-l INTEGER] [-r] [-c INTEGER]",
+        _CLI_OPTIONS,
+        _ENV_VARS
     )
 
     ###################

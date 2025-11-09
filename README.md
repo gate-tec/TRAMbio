@@ -72,7 +72,7 @@ pip install .[all]
 
 Execution of the general (k,l)-Pebble Game via API:
 ```pycon
->>> import networkx as nx  # TODO
+>>> import networkx as nx
 >>> from TRAMbio.pebble_game.pebble_game import run_pebble_game
 >>> graph = nx.complete_graph(5)
 >>> rho, _ , graph_type = run_pebble_game(graph, k=2, l=3)
@@ -154,7 +154,42 @@ Multiple features of the CLI commands can be customized via environment variable
 
 <details><summary>Environment variables for controlling atomic interactions:</summary>
 
-T.b.a
+<table>
+<thead>
+<tr><th>Name</th><th>Description</th><th>Data Type</th><th>Default</th></tr>
+</thead>
+<tbody>
+<tr><td><code>TRAM_HYDROGEN_INCLUDE</code></td><td>Whether to insert hydrogen bonds</td><td><code>bool</code></td><td><code>true</code></td></tr>
+<tr><td><code>TRAM_HYDROGEN_MINIMAL_LENGTH</code></td><td>Minimum distance between atoms to consider for a hydrogen bond (in Angstroms)</td><td><code>float</code></td><td><code>2.6</code></td></tr>
+<tr><td><code>TRAM_HYDROGEN_ENERGY_THRESHOLD</code></td><td>Energy threshold for inclusion of hydrogen bonds. All bonds with energy lower or equal to this threshold are included</td><td><code>float</code></td><td><code>-0.1</code></td></tr>
+<tr><td><code>TRAM_HYDROGEN_CUTOFF_DISTANCE</code></td><td>Maximum distance between atoms to consider for a hydrogen bond (in Angstroms)</td><td><code>float</code></td><td><code>3.0</code></td></tr>
+<tr><td><code>TRAM_HYDROGEN_STRONG_ENERGY_THRESHOLD</code></td><td>Separate energy threshold for 'strong' hydrogen bonds. Every bond with energies greater than this will be considered 'weak' and modeled with a gradually fewer number of bars</td><td><code>float</code></td><td><code>0.0</code></td></tr>
+<tr><td><code>TRAM_HYDROGEN_BAR_COUNT</code></td><td>Number of bars modeling a hydrogen bond in the pebble game</td><td><code>integer</code></td><td><code>5</code></td></tr>
+<tr><td><code>TRAM_HYDROPHOBIC_INCLUDE</code></td><td>Whether to insert hydrophobic interactions</td><td><code>bool</code></td><td><code>true</code></td></tr>
+<tr><td><code>TRAM_HYDROPHOBIC_MINIMAL_LENGTH</code></td><td>Whether to only keep the hydrophobic interaction with the shortest length for each atom</td><td><code>bool</code></td><td><code>true</code></td></tr>
+<tr><td><code>TRAM_HYDROPHOBIC_USE_POTENTIAL</code></td><td>Whether to use hydrophobic potential calculation instead of surface calculation</td><td><code>bool</code></td><td><code>false</code></td></tr>
+<tr><td><code>TRAM_HYDROPHOBIC_SURFACE_CUTOFF_DISTANCE</code></td><td>Maximum distance between the VDW surfaces of atoms in hydrophobic interactions (Surface only, in Angstroms)</td><td><code>float</code></td><td><code>0.25</code></td></tr>
+<tr><td><code>TRAM_HYDROPHOBIC_POTENTIAL_CUTOFF_DISTANCE</code></td><td>Maximum distance between atoms to consider for hydrophobic interactions (Potential only, in Angstroms)</td><td><code>float</code></td><td><code>9.0</code></td></tr>
+<tr><td><code>TRAM_HYDROPHOBIC_SCALE_14</code></td><td>Scaling factor for energy potential in hydrophobic interaction between 3rd-degree (1-4) covalent neighbors (Potential only)</td><td><code>float</code></td><td><code>0.5</code></td></tr>
+<tr><td><code>TRAM_HYDROPHOBIC_SCALE_15</code></td><td>Scaling factor for energy potential in hydrophobic interaction between 4th-degree (1-5) covalent neighbors (Potential only)</td><td><code>float</code></td><td><code>1.0</code></td></tr>
+<tr><td><code>TRAM_HYDROPHOBIC_SCALE_UNBOUNDED</code></td><td>Scaling factor for energy potential in hydrophobic interaction between 5th or higher degree covalent neighbors (Potential only)</td><td><code>float</code></td><td><code>0.5</code></td></tr>
+<tr><td><code>TRAM_HYDROPHOBIC_ENERGY_THRESHOLD</code></td><td>Energy threshold for inclusion of hydrophobic interactions. All interactions with energy lower or equal to this threshold are included (Potential only)</td><td><code>float</code></td><td><code>-0.1</code></td></tr>
+<tr><td><code>TRAM_HYDROPHOBIC_BAR_COUNT</code></td><td>Number of bars modeling a hydrophobic interaction in the pebble game</td><td><code>integer</code></td><td><code>3</code></td></tr>
+<tr><td><code>TRAM_DISULPHIDE_INCLUDE</code></td><td>Whether to insert disulphide bridges</td><td><code>bool</code></td><td><code>true</code></td></tr>
+<tr><td><code>TRAM_DISULPHIDE_CUTOFF_DISTANCE</code></td><td>Maximum distance between sulphur atoms to consider for a disulphide bridge(in Angstroms)</td><td><code>float</code></td><td><code>3.0</code></td></tr>
+<tr><td><code>TRAM_CATION_PI_INCLUDE</code></td><td>Whether to insert cation-pi interactions</td><td><code>bool</code></td><td><code>true</code></td></tr>
+<tr><td><code>TRAM_CATION_PI_CUTOFF_DISTANCE</code></td><td>Maximum distance between atoms to consider for a cation-pi interaction (in Angstroms)</td><td><code>float</code></td><td><code>3.0</code></td></tr>
+<tr><td><code>TRAM_CATION_PI_BAR_COUNT</code></td><td>Number of bars modeling a cation-pi interaction in the pebble game</td><td><code>integer</code></td><td><code>3</code></td></tr>
+<tr><td><code>TRAM_AROMATIC_INCLUDE</code></td><td>Whether to insert aromatic interactions</td><td><code>bool</code></td><td><code>true</code></td></tr>
+<tr><td><code>TRAM_AROMATIC_CUTOFF_DISTANCE_PI</code></td><td>Maximum distance between aromatic centers to consider for a pi-stacking (in Angstroms)</td><td><code>float</code></td><td><code>7.0</code></td></tr>
+<tr><td><code>TRAM_AROMATIC_CUTOFF_DISTANCE_T</code></td><td>Maximum distance between aromatic centers to consider for a t-stacking (in Angstroms)</td><td><code>float</code></td><td><code>5.0</code></td></tr>
+<tr><td><code>TRAM_AROMATIC_ANGLE_VARIANCE</code></td><td>Maximum allowed variance of the interaction angle in aromatic interactions (in degrees)</td><td><code>float</code></td><td><code>5.0</code></td></tr>
+<tr><td><code>TRAM_AROMATIC_BAR_COUNT</code></td><td>Number of bars modeling an aromatic interaction in the pebble game</td><td><code>integer</code></td><td><code>3</code></td></tr>
+<tr><td><code>TRAM_SSBOND_INCLUDE</code></td><td>Whether to insert SSBOND records from PDB data</td><td><code>bool</code></td><td><code>true</code></td></tr>
+<tr><td><code>TRAM_LINK_INCLUDE</code></td><td>Whether to insert LINK records from PDB data</td><td><code>bool</code></td><td><code>true</code></td></tr>
+<tr><td><code>TRAM_CONECT_INCLUDE</code></td><td>Whether to insert CONECT records from PDB data</td><td><code>bool</code></td><td><code>true</code></td></tr>
+</tbody>
+</table>
 </details>
 
 <details><summary>Environment variables for loading PDB data:</summary>
@@ -164,15 +199,33 @@ T.b.a
 <tr><th>Name</th><th>Description</th><th>Data Type</th><th>Default</th></tr>
 </thead>
 <tbody>
-<tr><td><code>TRAM_PDB_UNIQUE_BONDS</code></td><td>Whether to limit annotations for atomic edges to a single, unique label.</td><td><code>bool</code></td><td><code>false</code></td></tr>
-<tr><td><code>TRAM_PDB_KEEP_HETS</code></td><td>Whether to include <code>HETATM</code> records from PDB data.</td><td><code>bool</code></td><td><code>true</code></td></tr>
+<tr><td><code>TRAM_PDB_UNIQUE_BONDS</code></td><td>Whether to limit annotations for atomic edges to a single, unique label</td><td><code>bool</code></td><td><code>false</code></td></tr>
+<tr><td><code>TRAM_PDB_KEEP_HETS</code></td><td>Whether to include <code>HETATM</code> records from PDB data</td><td><code>bool</code></td><td><code>true</code></td></tr>
 </tbody>
 </table>
 </details>
 
 <details><summary>Environment variables for controlling the workflows:</summary>
 
-T.b.a
+<table>
+<thead>
+<tr><th>Name</th><th>Description</th><th>Data Type</th><th>Default</th></tr>
+</thead>
+<tbody>
+<tr><td><code>TRAM_VERBOSE</code></td><td>Verbosity switch for various outputs like progress bars</td><td><code>bool</code></td><td><code>true</code></td></tr>
+<tr><td><code>TRAM_PEBBLE_GAME_K</code></td><td>Parameter k for the pebble game (Overwritten from command line)</td><td><code>integer</code></td><td><code>2</code></td></tr>
+<tr><td><code>TRAM_PEBBLE_GAME_L</code></td><td>Parameter l for the pebble game (Overwritten from command line)</td><td><code>integer</code></td><td><code>3</code></td></tr>
+<tr><td><code>TRAM_PEBBLE_GAME_THREADS</code></td><td>Number of threads for multiprocessing. A value of 1 specifies no multiprocessing (Overwritten from command line)</td><td><code>integer</code></td><td><code>1</code></td></tr>
+<tr><td><code>TRAM_XTC_MODULE</code></td><td>The selected third-party module for loading XTC files (Overwritten from command line)</td><td><code>MDAnalysis</code> or <code>mdtraj</code></td><td><code>MDAnalysis</code></td></tr>
+<tr><td><code>TRAM_XTC_STRIDE</code></td><td>Selected stride for XTC frames (Overwritten from command line)</td><td><code>integer</code></td><td><code>50</code></td></tr>
+<tr><td><code>TRAM_XTC_DYNAMIC_SCALING</code></td><td>Whether to activate dynamic core allocation during multiprocessing setup. If False, 2/3 of the available cores will be used for graph construction and 1/3 for the pebble game runs</td><td><code>bool</code></td><td><code>true</code></td></tr>
+<tr><td><code>TRAM_RESIDUE_MIN_KEY</code></td><td>Minimum value for state keys. Either a float for single frame PDBs, indicating the minimum strength for present hydrogen bonds, or a starting frame number for trajectories (Overwritten from command line)</td><td><code>string</code></td><td>No limit</td></tr>
+<tr><td><code>TRAM_RESIDUE_MAX_STATES</code></td><td>Maximum number of states to visualize. Values lower than 1 indicate no limit. (Overwritten from command line)</td><td><code>integer</code></td><td><code>0</code></td></tr>
+<tr><td><code>TRAM_RESIDUE_THRESHOLD</code></td><td>Percentage of required residue atoms within a component to count it as present on the residue level. Requires PDB data to be provided</td><td><code>float</code></td><td><code>0.8</code></td></tr>
+<tr><td><code>TRAM_RESIDUE_USE_MAIN_CHAIN</code></td><td>Whether to consider a residue present in the residue-level component if the N-CA-C main chain atoms are contained</td><td><code>bool</code></td><td><code>true</code></td></tr>
+<tr><td><code>TRAM_PYMOL_ALL_WEIGHTED_BONDS</code></td><td>Whether to include all weighted interactions (from a provided bond file) in the PyMol frames or only hydrogen bonds and salt-bridges (PDB to PyMol only)</td><td><code>bool</code></td><td><code>false</code></td></tr>
+</tbody>
+</table>
 </details>
 
 ## Data Formats
@@ -249,10 +302,13 @@ The `KEY-X` entries are the keys of the corresponding `<state>` in the component
 If you use TRAMbio as part of your workflow in a scientific publication, please consider citing the TRAMbio repository as follows:
 
 ```bibtex
-@unpublished{handke2025trambio,
-  title =     {{TRAMbio}: A Flexible Python Package for Graph Rigidity Analysis of Macromolecules},
+@article{handke2025trambio,
+  title =     {\texttt{TRAMbio}: A Flexible Python Package for Graph Rigidity Analysis of Macromolecules},
   author =    {Handke, Nicolas and Gatter, Thomas and Reinhardt, Franziska and Stadler, Peter F.},
   year =      {2025},
-  note =      {unpublished},
+  journal =   {BMC Bioinformatics},
+  version =   {26},
+  number =    {266},
+  doi =       {10.1186/s12859-025-06300-3}
 }
 ```

@@ -108,7 +108,7 @@ def export_residue_states(
             if min_key == "-INF":
                 # include no hydrogen bonds
                 break
-            if min_key_val is not None and (float(state_key) - min_key_val) * (1 if is_trajectory else -1) < 0:
+            if min_key_val is not None and (float(state_key) - min_key_val) > 0:
                 break
 
         key_list.append(state_key)

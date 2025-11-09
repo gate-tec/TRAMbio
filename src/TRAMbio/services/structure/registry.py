@@ -17,9 +17,9 @@ __all__ = [
     "IPdbStructureService", "IXmlStructureService"
 ]
 
-
-ParameterRegistry.register_parameter(PdbParameter.UNIQUE_BONDS.value, False)
-ParameterRegistry.register_parameter(PdbParameter.KEEP_HETS.value, True)
+for parameter_set in [PdbParameter]:
+    for parameter in parameter_set:
+        ParameterRegistry.register_parameter(parameter)
 
 
 class IPdbStructureService(IBaseService, metaclass=abc.ABCMeta):

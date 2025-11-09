@@ -21,27 +21,15 @@ __all__ = [
     "IResidueWorkflowService", "IPyMolWorkflowService", "IPebbleGameWorkflowService"
 ]
 
-ParameterRegistry.register_parameter(GeneralWorkflowParameter.VERBOSE.value, True)
-
-ParameterRegistry.register_parameter(PebbleGameParameter.K.value, 2, lambda x: x >= 1)
-ParameterRegistry.register_parameter(PebbleGameParameter.L.value, 3, lambda x: x >= 0)
-ParameterRegistry.register_parameter(PebbleGameParameter.THREADS.value, 2, lambda x: 1 <= x <= os.cpu_count())
-
-ParameterRegistry.register_parameter(
-    XtcParameter.MODULE.value,
-    'MDAnalysis'
-    if 'MDAnalysis' in IOServiceRegistry.XTC.list_service_names() else
-    (IOServiceRegistry.XTC.single_service(error_on_none=False) or 'MDAnalysis')
-)
-ParameterRegistry.register_parameter(XtcParameter.STRIDE.value, 50, lambda x: x >= 1)
-ParameterRegistry.register_parameter(XtcParameter.DYNAMIC_SCALING.value, True)
-
-ParameterRegistry.register_parameter(ResidueParameter.MIN_KEY.value, None)
-ParameterRegistry.register_parameter(ResidueParameter.MAX_STATES.value, 0, lambda x: x >= 0)
-ParameterRegistry.register_parameter(ResidueParameter.THRESHOLD.value, 0.8, lambda x: 0 <= x <= 1)
-ParameterRegistry.register_parameter(ResidueParameter.USE_MAIN_CHAIN.value, True)
-
-ParameterRegistry.register_parameter(PyMolParameter.ALL_WEIGHTED_BONDS.value, False)
+for parameter_set in [
+    GeneralWorkflowParameter,
+    PebbleGameParameter,
+    XtcParameter,
+    ResidueParameter,
+    PyMolParameter
+]:
+    for parameter in parameter_set:
+        ParameterRegistry.register_parameter(parameter)
 
 
 class IBaseWorkflowService(IBaseService, metaclass=abc.ABCMeta):

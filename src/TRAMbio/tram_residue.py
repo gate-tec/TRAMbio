@@ -3,7 +3,7 @@ import os
 import sys
 import textwrap
 import time
-from typing import Optional, Dict, Literal
+from typing import Optional, Dict, Literal, List
 
 from pathvalidate import sanitize_filename
 
@@ -14,7 +14,7 @@ from TRAMbio.util.functions.argparse.base_parser import parse_args_for
 from TRAMbio.util.structure_library.argparse import OptionsDictionary
 
 from TRAMbio.services import WorkflowServiceRegistry, ParameterRegistry
-from TRAMbio.services.parameter import ResidueParameter, GeneralWorkflowParameter
+from TRAMbio.services.parameter import ResidueParameter, GeneralWorkflowParameter, BaseParameter
 
 _CLI_OPTIONS: Dict[str, OptionsDictionary] = {
     'xml_file': OptionsDictionary(
@@ -41,7 +41,7 @@ _CLI_OPTIONS: Dict[str, OptionsDictionary] = {
         default=lambda argv: os.path.dirname(os.path.abspath(argv['xml_file']))),
     'key': OptionsDictionary(
         id=['-k', '--key'], args=dict(type=str, metavar='MIN_KEY', help=textwrap.dedent(
-            """Minimum value for state keys. Either a float for single frame PDBs, indicating the minimum strength for present hydrogen bonds, or a starting framenumber for trajectories (default: no limit)
+            """Minimum value for state keys. Either a float for single frame PDBs, indicating the minimum strength for present hydrogen bonds, or a starting frame number for trajectories (default: no limit)
             """)),
         default=lambda argv: None),
     'max_states': OptionsDictionary(
@@ -56,6 +56,12 @@ _CLI_OPTIONS: Dict[str, OptionsDictionary] = {
             """)),
         default=lambda argv: 'INFO')
 }
+
+_ENV_VARS: List[BaseParameter] = [
+    GeneralWorkflowParameter.VERBOSE,
+    ResidueParameter.THRESHOLD,
+    ResidueParameter.USE_MAIN_CHAIN
+]
 
 
 def pipeline(
@@ -87,7 +93,11 @@ def main(default_log_level: Literal['TRACE', 'DEBUG', 'INFO', 'SUCCESS', 'WARNIN
     set_log_level(default_log_level)
 
     args = parse_args_for(
-        'tram-residue', "Create residue-level components from atom-level component analysis results.", _CLI_OPTIONS
+        'tram-residue',
+        "Create residue-level components from atom-level component analysis results.",
+        "-x XML_FILE [-p PDB_FILE] [-n PDB_NAME] [-o OUTPUT_DIR] [-k MIN_KEY] [-m MAX_STATES]",
+        _CLI_OPTIONS,
+        _ENV_VARS
     )
 
     ######################

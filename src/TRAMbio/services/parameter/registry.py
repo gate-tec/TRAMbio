@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os
-from typing import Optional, Dict, TypeVar, Tuple, Callable
+from typing import Callable
 
 import functools
 import inspect
@@ -10,10 +10,9 @@ from loguru import logger
 import random
 
 from TRAMbio.services.parameter import GeneralWorkflowParameter
+from TRAMbio.services.parameter._base_parameter import _Parameter, BaseParameter
 
 __all__ = ["ParameterRegistry", "DefaultParameterRegistry", "lock_registry", "verbosity_from_parameter"]
-
-_Parameter = TypeVar('_Parameter', str, int, float, bool)
 
 
 def _bool_env_var_parser(x: str) -> bool:
@@ -21,7 +20,7 @@ def _bool_env_var_parser(x: str) -> bool:
 
 
 class ParameterRegistry:
-    __default_values: dict[str, tuple[_Parameter, type, Callable[[_Parameter], bool]]] = {}
+    __default_values: dict[str, tuple[BaseParameter, _Parameter, type]] = {}
     __instances = {}
 
     def __init__(self, parameter_id: str):
@@ -32,10 +31,12 @@ class ParameterRegistry:
     @classmethod
     def register_parameter(
             cls,
-            parameter_key: str,
-            default_value: _Parameter | None,
-            validator: Callable[[_Parameter], bool] | None = None
+            parameter: BaseParameter
     ):
+        parameter_key: str = parameter.value
+        default_value: _Parameter | None = parameter.default_value
+        validator: Callable[[_Parameter], bool] | None = parameter.validator
+
         param_type = type(default_value) if default_value is not None else str
         env_var_parser = param_type
         if param_type == bool:
@@ -44,16 +45,13 @@ class ParameterRegistry:
         if env_var is not None:
             try:
                 value = env_var_parser(env_var)
-                if validator is not None and not validator(value):
+                if not validator(value):
                     logger.warning(f"Unable to set {parameter_key} to {value} using {default_value} instead.")
                 else:
                     default_value = value
             except ValueError:
                 pass
-        if validator is None:
-            cls.__default_values[parameter_key] = (default_value, param_type, lambda x: True)
-        else:
-            cls.__default_values[parameter_key] = (default_value, param_type, validator)
+        cls.__default_values[parameter_key] = (parameter, default_value, param_type)
 
     @classmethod
     def get_parameter_set(cls, parameter_id: str) -> ParameterRegistry:
@@ -71,7 +69,7 @@ class ParameterRegistry:
             if parameter_key in self.__instance_values.keys():
                 return self.__instance_values[parameter_key]
             if parameter_key in self.__default_values.keys():
-                return self.__default_values[parameter_key][0]
+                return self.__default_values[parameter_key][1]
         return None
 
     def get_parameter(self, parameter_key: str) -> _Parameter | None:
@@ -84,12 +82,12 @@ class ParameterRegistry:
         if parameter_key not in self.__default_values.keys():
             raise KeyError(f"Unknown parameter: {parameter_key}")
         reference = self.__default_values[parameter_key]
-        typing: type = reference[1]
+        typing: type = reference[2]
         # PyCharm may flag a potential misuse of the typing library (ignored with noqa)
         if not isinstance(value, typing) and not (typing == float and isinstance(value, int)):  # noqa
             raise ValueError(f'Mismatching type for parameter "{parameter_key}". '
                              f'Expected {typing}, got {type(value)} instead.')
-        if not reference[2](value):
+        if not reference[0].validator(value):
             raise ValueError(f'Unable to pass check for parameter "{parameter_key}".')
         self.__instance_values[parameter_key] = value
 

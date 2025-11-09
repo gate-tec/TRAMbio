@@ -3,13 +3,13 @@ import os
 import sys
 import textwrap
 import time
-from typing import Optional, Dict, Literal
+from typing import Optional, Dict, Literal, List
 
 from pathvalidate import sanitize_filename
 
 from TRAMbio import set_log_level
 from TRAMbio.services import IOServiceRegistry, ParameterRegistry, WorkflowServiceRegistry
-from TRAMbio.services.parameter import XtcParameter, GeneralWorkflowParameter
+from TRAMbio.services.parameter import XtcParameter, GeneralWorkflowParameter, BaseParameter, PyMolParameter
 from TRAMbio.util.functions.argparse.base_parser import parse_args_for
 from TRAMbio.util.structure_library.argparse import OptionsDictionary
 
@@ -69,6 +69,11 @@ _CLI_OPTIONS: Dict[str, OptionsDictionary] = {
         default=lambda argv: 'INFO')
 }
 
+_ENV_VARS: List[BaseParameter] = [
+    GeneralWorkflowParameter.VERBOSE,
+    PyMolParameter.ALL_WEIGHTED_BONDS
+]
+
 
 def pipeline(
         pdb_path: str,
@@ -109,7 +114,11 @@ def main(default_log_level: Literal['TRACE', 'DEBUG', 'INFO', 'SUCCESS', 'WARNIN
     set_log_level(default_log_level)
 
     args = parse_args_for(
-        'tram-pymol', "Create PyMol visualization scripts from component analysis results.", _CLI_OPTIONS
+        'tram-pymol',
+        "Create PyMol visualization scripts from component analysis results.",
+        f"-p PDB_FILE [--xtc XTC_FILE] [-o OUTPUT_DIR] [-n PDB_NAME] [-x XML_FILE] [-b BOND_FILE] [-k MIN_KEY] [-s MAX_STATES] [-m {{{','.join(IOServiceRegistry.XTC.list_service_names())}}}]",
+        _CLI_OPTIONS,
+        _ENV_VARS
     )
 
     ###################

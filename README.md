@@ -97,8 +97,7 @@ pymol 1l2y_components.pml
   The notable arguments are:
   - `-p`, `--pdb`: Protein input file in PDB v3 format.
   - `-o`, `--out-dir`: Directory for output files. (default: next to input file)
-  - `-n`, `--name`: Alternate name for protein (used as output prefix).
-  <br/>
+  - `-n`, `--name`: Alternate name for protein (used as output prefix).  
   If not specified, name is derived from input file name.
 - `tram-xtc`: command for analyzing an MD Simulation trajectory.
 
@@ -106,14 +105,11 @@ pymol 1l2y_components.pml
   - `-x`, `--xtc`: Trajectory file in XTC format.
   - `-p`, `--pdb`: Protein input file in PDB v3 format.
   - `-o`, `--out-dir`: Directory for output files. (default: next to input file)
-  - `-n`, `--name`: Alternate name for protein (used as output prefix).
-  <br/>
+  - `-n`, `--name`: Alternate name for protein (used as output prefix).  
   If not specified, name is derived from input file name.
-  - `-s`, `--stride`: Only processes every stride-th frame. (default: 50)
-  <br/>
+  - `-s`, `--stride`: Only processes every stride-th frame. (default: 50)  
   Negative values result in only the first frame being processed.
-  - `-m`, `--module`: Base module for trajectory loading.
-  <br/>
+  - `-m`, `--module`: Base module for trajectory loading.  
   Requires either module [MDAnalysis](https://pypi.org/project/MDAnalysis/) (current default) or [mdtraj](https://pypi.org/project/mdtraj/) to load trajectories.
 - `tram-pymol`: command for creating a PyMol visualization from the output of above commands.
 
@@ -122,20 +118,17 @@ pymol 1l2y_components.pml
   - `-x`, `--xml`: Path to components XML resulting from the component analysis.
   - `--xtc`: Trajectory file in XTC format. Required for visualizing results from `tram-trajectory`.
   - `-o`, `--out-dir`: Directory for output files. (default: next to input file)
-  - `-n`, `--name`: Alternate name for protein (used as output prefix).
-  <br/>
+  - `-n`, `--name`: Alternate name for protein (used as output prefix).  
   If not specified, name is derived from input file name.
   - `-b`, `--bnd-file`: Optionally, the `.bnd` file resulting from the component analysis can be provided, if hydrogen bonds should be included in the visualization. (Not recommended for trajectories)
-  - `-m`, `--module`: Base module for trajectory loading. Only used when `--xtc` is present. (default: MDAnalysis)
-  <br/>
+  - `-m`, `--module`: Base module for trajectory loading. Only used when `--xtc` is present. (default: MDAnalysis)  
   Requires either module [MDAnalysis](https://pypi.org/project/MDAnalysis/) (current default) or [mdtraj](https://pypi.org/project/mdtraj/) to load trajectories.
 - `tram-residue`: command for converting (atom-level) component results to residue-level.
 
   The notable arguments are:
   - `-x`, `--xml`: Path to components XML resulting from the component analysis.
   - `-o`, `--out-dir`: Directory for output files. (default: next to input file)
-  - `-n`, `--name`: Alternate name for protein (used as output prefix).
-  <br/>
+  - `-n`, `--name`: Alternate name for protein (used as output prefix).  
   If not specified, name is derived from input file name.
 - `tram-pebble`: command for applying the general (k,l)-Component Pebble Game to provided graphs.
 
@@ -144,8 +137,7 @@ pymol 1l2y_components.pml
   - `-k`, `--k-param`: Parameter `k` of the Pebble Game. Needs to be a positive integer. (default: 2)
   - `-l`, `--l-param`: Parameter `l` of the Pebble Game. Nedds to be in interval `[0,2k)` (default: 3)
   - `-o`, `--out-dir`: Directory for output files. (default: next to input file)
-  - `-n`, `--name`: Alternate name for protein (used as output prefix).
-  <br/>
+  - `-n`, `--name`: Alternate name for protein (used as output prefix).  
   If not specified, name is derived from input file name.
 
 ## Environment Variables

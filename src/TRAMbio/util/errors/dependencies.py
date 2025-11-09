@@ -1,6 +1,6 @@
 import sys
 from enum import Enum
-from typing import List, Union
+from typing import List, Union, Dict
 
 
 class MissingDependencyError(Exception):
@@ -23,7 +23,7 @@ class DependencyWithSafeTest(Enum):
 
 class SafeDependencyTest:
 
-    _tested_dependencies: dict[DependencyWithSafeTest, bool] = {}
+    _tested_dependencies: Dict[DependencyWithSafeTest, bool] = {}
 
     @classmethod
     def is_present(cls, dependency: DependencyWithSafeTest) -> bool:

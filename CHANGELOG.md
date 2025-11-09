@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.3] - 2025-11-09
+
 ### Fixed
 
 - Resolved README formatting issues
@@ -41,7 +43,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Initial release
 
-[unreleased]: https://github.com/gate-tec/TRAMbio/compare/v1.0.1...HEAD
+[unreleased]: https://github.com/gate-tec/TRAMbio/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/gate-tec/TRAMbio/compare/v1.0.1...v1.0.3
 [1.0.1]: https://github.com/gate-tec/TRAMbio/compare/v0.1.2...v1.0.1
 [0.1.2]: https://github.com/gate-tec/TRAMbio/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/gate-tec/TRAMbio/compare/v0.1.0...v0.1.1

@@ -8,17 +8,9 @@ from TRAMbio.services.io import IXtcIOService, IOServiceRegistry
 from TRAMbio.services import StructureServiceRegistry, ParameterRegistry
 from TRAMbio.services.parameter import HydrogenBondParameter
 
-from TRAMbio.util.errors import MissingDependencyError
+from TRAMbio.util.errors import MissingDependencyError, SafeDependencyTest, DependencyWithSafeTest
 
-try:
-    import mdtraj as md
-    from mdtraj.formats.pdb.pdbfile import PDBTrajectoryFile
-    from mdtraj.core.trajectory import Trajectory
-    from mdtraj.utils import (in_units_of)
-    # Known compatible versions are [1.9.9, 1.10.0]
-    # TODO: Double check compatible version (mdtraj has no __version__) from:
-    # sys.modules["mdtraj"].version.full_version
-except ModuleNotFoundError:
+if not SafeDependencyTest.is_present(DependencyWithSafeTest.mdtraj):
     exc = MissingDependencyError(
         module="TRAMbio.services.io._xtc_mdtraj_io_service",
         dependency="mdtraj"
@@ -27,6 +19,14 @@ except ModuleNotFoundError:
         raise exc
     finally:
         exc.__context__ = None
+
+import mdtraj as md
+from mdtraj.formats.pdb.pdbfile import PDBTrajectoryFile
+from mdtraj.core.trajectory import Trajectory
+from mdtraj.utils import (in_units_of)
+# Known compatible versions are [1.9.9, 1.10.0]
+# TODO: Double check compatible version (mdtraj has no __version__) from:
+# sys.modules["mdtraj"].version.full_version
 
 
 __all__ = []
@@ -107,7 +107,7 @@ class XtcMdtrajIOService(IXtcIOService):
 
     @property
     def name(self):
-        return "mdtraj"
+        return DependencyWithSafeTest.mdtraj.value
 
     def read(
             self,

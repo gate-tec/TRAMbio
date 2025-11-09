@@ -1,1 +1,1 @@
-from TRAMbio.util.errors.dependencies import MissingDependencyError
+from TRAMbio.util.errors.dependencies import MissingDependencyError, SafeDependencyTest, DependencyWithSafeTest

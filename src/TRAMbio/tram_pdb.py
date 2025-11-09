@@ -4,7 +4,7 @@ import multiprocessing as mp
 import sys
 import textwrap
 import time
-from typing import Dict, Literal
+from typing import Dict, Literal, List
 
 from loguru import logger
 from pathvalidate import sanitize_filename
@@ -12,7 +12,9 @@ from pathvalidate import sanitize_filename
 from TRAMbio import set_log_level
 
 from TRAMbio.services import WorkflowServiceRegistry, ParameterRegistry
-from TRAMbio.services.parameter import HydrogenBondParameter, GeneralWorkflowParameter
+from TRAMbio.services.parameter import HydrogenBondParameter, GeneralWorkflowParameter, BaseParameter, \
+    HydrophobicInteractionParameter, DisulphideBridgeParameter, CationPiInteractionParameter, \
+    AromaticInteractionParameter, PdbEntryInteractionParameter
 from TRAMbio.util.functions.argparse.base_parser import parse_args_for
 from TRAMbio.util.structure_library.argparse import OptionsDictionary
 
@@ -52,6 +54,22 @@ _CLI_OPTIONS: Dict[str, OptionsDictionary] = {
             """)),
         default=lambda argv: 'INFO')
 }
+
+_ENV_VARS: List[BaseParameter] = [
+    GeneralWorkflowParameter.VERBOSE
+] + [
+    parameter for parameter in HydrogenBondParameter
+] + [
+    parameter for parameter in HydrophobicInteractionParameter
+] + [
+    parameter for parameter in DisulphideBridgeParameter
+] + [
+    parameter for parameter in CationPiInteractionParameter
+] + [
+    parameter for parameter in AromaticInteractionParameter
+] + [
+    parameter for parameter in PdbEntryInteractionParameter
+]
 
 
 def run_pipeline(
@@ -97,7 +115,11 @@ def main(default_log_level: Literal['TRACE', 'DEBUG', 'INFO', 'SUCCESS', 'WARNIN
         pass
 
     args = parse_args_for(
-        'tram-pdb', "Calculate rigid components for PDB files.", _CLI_OPTIONS
+        'tram-pdb',
+        "Calculate rigid components for PDB files.",
+        "-p PDB_FILE [-o OUTPUT_DIR] [-n PDB_NAME] [-e] [-t THRESHOLD]",
+        _CLI_OPTIONS,
+        _ENV_VARS
     )
 
     ###################

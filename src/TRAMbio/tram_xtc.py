@@ -3,7 +3,7 @@ import os
 import sys
 import textwrap
 import time
-from typing import Dict, Literal, Optional
+from typing import Dict, Literal, Optional, List
 
 from TRAMbio.services import IOServiceRegistry, WorkflowServiceRegistry, DefaultParameterRegistry, ParameterRegistry
 
@@ -13,7 +13,9 @@ from pathvalidate import sanitize_filename
 import multiprocessing as mp
 
 from TRAMbio import set_log_level
-from TRAMbio.services.parameter import XtcParameter, GeneralWorkflowParameter, HydrogenBondParameter
+from TRAMbio.services.parameter import XtcParameter, GeneralWorkflowParameter, HydrogenBondParameter, BaseParameter, \
+    HydrophobicInteractionParameter, DisulphideBridgeParameter, CationPiInteractionParameter, \
+    AromaticInteractionParameter, PdbEntryInteractionParameter
 from TRAMbio.util.functions.argparse.base_parser import parse_args_for
 from TRAMbio.util.structure_library.argparse import OptionsDictionary
 
@@ -75,6 +77,23 @@ _CLI_OPTIONS: Dict[str, OptionsDictionary] = {
         default=lambda argv: 'INFO')
 }
 
+_ENV_VARS: List[BaseParameter] = [
+    GeneralWorkflowParameter.VERBOSE,
+    XtcParameter.DYNAMIC_SCALING
+] + [
+    parameter for parameter in HydrogenBondParameter
+] + [
+    parameter for parameter in HydrophobicInteractionParameter
+] + [
+    parameter for parameter in DisulphideBridgeParameter
+] + [
+    parameter for parameter in CationPiInteractionParameter
+] + [
+    parameter for parameter in AromaticInteractionParameter
+] + [
+    parameter for parameter in PdbEntryInteractionParameter
+]
+
 
 def run_pipeline(
         input_xtc: str,
@@ -131,7 +150,11 @@ def main(default_log_level: Literal['TRACE', 'DEBUG', 'INFO', 'SUCCESS', 'WARNIN
         pass
 
     args = parse_args_for(
-        'tram-xtc', "Calculate rigid components for MD trajectory.", _CLI_OPTIONS
+        'tram-xtc',
+        "Calculate rigid components for MD trajectory.",
+        f"-x XTC_FILE -p PDB_FILE [-o OUTPUT_DIR] [-n PDB_NAME] [-e] [-c CORES] [-t THRESHOLD] [-s STRIDE] [-m {{{','.join(IOServiceRegistry.XTC.list_service_names())}}}]",
+        _CLI_OPTIONS,
+        _ENV_VARS
     )
 
     ###################

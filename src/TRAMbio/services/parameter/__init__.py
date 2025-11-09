@@ -1,3 +1,4 @@
+from TRAMbio.services.parameter._base_parameter import BaseParameter
 from TRAMbio.services.parameter._structure_parameter import PdbParameter
 from TRAMbio.services.parameter._workflow_parameter import GeneralWorkflowParameter, PebbleGameParameter, XtcParameter, ResidueParameter, PyMolParameter
 from TRAMbio.services.parameter._interaction_parameter import HydrogenBondParameter, HydrophobicInteractionParameter, \

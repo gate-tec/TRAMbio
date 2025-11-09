@@ -8,12 +8,9 @@ from TRAMbio.util.wrapper.base.stream import ToggledStringIO
 from TRAMbio.util.wrapper.pandas.warning import WarningWrapper
 from TRAMbio.services.io import IXtcIOService, IOServiceRegistry
 
-from TRAMbio.util.errors import MissingDependencyError
+from TRAMbio.util.errors import MissingDependencyError, SafeDependencyTest, DependencyWithSafeTest
 
-try:
-    import MDAnalysis as mda
-    from MDAnalysis.coordinates.PDB import PDBWriter
-except ModuleNotFoundError:
+if not SafeDependencyTest.is_present(DependencyWithSafeTest.MDAnalysis):
     exc = MissingDependencyError(
         module="TRAMbio.services.io._xtc_mdanalysis_io_service",
         dependency="MDAnalysis"
@@ -23,6 +20,8 @@ except ModuleNotFoundError:
     finally:
         exc.__context__ = None
 
+import MDAnalysis as mda
+from MDAnalysis.coordinates.PDB import PDBWriter
 # Turn off logging messages from MDAnalysis.coordinates.PBD
 import logging
 logging.getLogger("MDAnalysis.coordinates.PBD").disabled = True
@@ -35,7 +34,7 @@ class XtcMDAnalysisIOService(IXtcIOService):
 
     @property
     def name(self):
-        return "MDAnalysis"
+        return DependencyWithSafeTest.MDAnalysis.value
 
     def read(
             self,

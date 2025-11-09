@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Official release
+- Reference to publication in README
+- Documentation and help text for environment variables
+
 ## [0.1.2] - 2025-09-07
 
 ### Fixed
